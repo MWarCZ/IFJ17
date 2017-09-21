@@ -1,0 +1,15 @@
+
+# Obsahuje zkompilovane soubory ze src/
+build/
+# Obsahuje zkompilovsne testy z test/
+build_test/
+# Dokumentace prijektu - generovana
+doc/
+# Adresar s jednoduchym testovscim frameworkem
+test_framework/
+
+# Pomocne soubory editoru vim
+*.swp
+# Logovaci soubory
+*.log
+
