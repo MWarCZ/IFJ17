@@ -64,14 +64,15 @@ Cílem projektu je vytvořit překladač v jazyce C pro rádoby jazyk FreeBASIC,
 ------------
 
 ## Členové týmu
-- [Miroslav Válka](https://github.com/MWarCZ)
-- [Jan Trněný](https://github.com/xtrnen)
-- [Lukáš Prokop](https://github.com/Prokopl)
+- Miroslav Válka [![MWarCZ][github icon]](https://github.com/MWarCZ) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/miroslav-valka-196460)
+- Jan Trněný [![xtrnen][github icon]](https://github.com/xtrnen) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/jan-trneny-196461)
+- Lukáš Prokop [![Prokopl][github icon]](https://github.com/Prokopl) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/lukas-prokop-196015)
 
 ------------
 
-[licence]: LICENSE
+[licence]: README.md
 [travis ci]: https://travis-ci.org/MWarCZ/IFJ17
 [hlavni Makefile]: Makefile
+[github icon]: https://cdn1.iconfinder.com/data/icons/simple-icons/24/github-24-black.png
 
 
