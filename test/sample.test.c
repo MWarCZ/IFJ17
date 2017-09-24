@@ -1,3 +1,11 @@
+//////////////////////////////////////////
+// Projekt: IFJ17                       //
+// Soubor: test/sample.test.c           //
+// Tým:                                 //
+//   xvalka05 Miroslav Válka            //
+//   xtrnen03 Jan Trněný                //
+//   xproko37 Lukáš Prokop              //
+//////////////////////////////////////////
 
 #include "../src/sample.h"
 
@@ -25,4 +33,7 @@ CHEAT_TEST(Test_ForCyclus,
 CHEAT_TEST(Test_GetNumber,
 	cheat_assert(GetNumber(1) == 1);
 )
+
+
+// Soubor: test/sample.test.c
 

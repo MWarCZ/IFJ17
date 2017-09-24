@@ -1,3 +1,11 @@
+//////////////////////////////////////////
+// Projekt: IFJ17                       //
+// Soubor: src/main.c                   //
+// Tým:                                 //
+//   xvalka05 Miroslav Válka            //
+//   xtrnen03 Jan Trněný                //
+//   xproko37 Lukáš Prokop              //
+//////////////////////////////////////////
 
 #include <stdio.h>
 
@@ -15,4 +23,6 @@ int main() {
 
 	return 0;
 }
+
+// Soubor: src/main.c
 

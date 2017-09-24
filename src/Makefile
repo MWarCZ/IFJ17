@@ -1,3 +1,11 @@
+##########################################
+## Projekt: IFJ17                       ##
+## Soubor: src/Makefile                 ##
+## Tým:                                 ##
+##   xvalka05 Miroslav Válka            ##
+##   xtrnen03 Jan Trněný                ##
+##   xproko37 Lukáš Prokop              ##
+##########################################
 
 CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g -I .
@@ -39,4 +47,7 @@ run: build
 clean:
 	@printf "\n===== CLEAN =====\n\n"
 	rm -f -R $(BUILD_DIR)
+
+
+## Soubor: src/Makefile
 
