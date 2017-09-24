@@ -1,3 +1,11 @@
+##########################################
+## Projekt: IFJ17                       ##
+## Soubor: test/Makefile                ##
+## Tým:                                 ##
+##   xvalka05 Miroslav Válka            ##
+##   xtrnen03 Jan Trněný                ##
+##   xproko37 Lukáš Prokop              ##
+##########################################
 
 .PHONY: all get-deps build-dir build run test clean
 
@@ -56,4 +64,7 @@ clean:
 	@printf "\n===== CLEAN =====\n\n"
 	rm -f -R $(BUILD_DIR)
 	rm -f -R $(TEST_FRAMEWORK_DIR)
+
+
+## Soubor: test/Makefile
 

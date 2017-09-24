@@ -1,3 +1,12 @@
+//////////////////////////////////////////
+// Projekt: IFJ17                       //
+// Soubor: src/sample.h                 //
+// Tým:                                 //
+//   xvalka05 Miroslav Válka            //
+//   xtrnen03 Jan Trněný                //
+//   xproko37 Lukáš Prokop              //
+//////////////////////////////////////////
+
 #ifndef SAMPLE_H
 #define SAMPLE_H
 
@@ -16,4 +25,6 @@ void SayHelloWorld();
 int GetNumber(int x);
 
 #endif
+
+// Soubor: src/sample.h
 

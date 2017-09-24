@@ -1,3 +1,12 @@
+//////////////////////////////////////////
+// Projekt: IFJ17                       //
+// Soubor: src/sample.c                 //
+// Tým:                                 //
+//   xvalka05 Miroslav Válka            //
+//   xtrnen03 Jan Trněný                //
+//   xproko37 Lukáš Prokop              //
+//////////////////////////////////////////
+
 #ifndef SAMPLE_C
 #define SAMPLE_C
 
@@ -13,4 +22,6 @@ int GetNumber(int x) {
 }
 
 #endif
+
+// Soubor: sample.c
 
