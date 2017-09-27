@@ -16,6 +16,7 @@
 //   xvalka05 Miroslav Válka            //
 //   xtrnen03 Jan Trněný                //
 //   xproko37 Lukáš Prokop              //
+//   xbarto93 Pavel Bartoň              //
 //////////////////////////////////////////
    ```
 #### V souboru Makefile
@@ -27,6 +28,7 @@
 ##   xvalka05 Miroslav Válka            ##
 ##   xtrnen03 Jan Trněný                ##
 ##   xproko37 Lukáš Prokop              ##
+##   xbarto93 Pavel Bartoň              ##
 ##########################################
   ```
 
@@ -65,9 +67,9 @@
 
 #### Estetická úprava kódu
 - Názvy proměných
-  - `camelCase`
+  - `lowerCamelCase`
 - Názvy funkí
-  - `CamelCase`
+  - `UpperCamelCase`
 - Názvy konstant
   - `SNAKE_CASE`
 - Styl závorek
@@ -133,6 +135,6 @@
    > Větev bude smazána jen pokud již je součástí větve `master`. <br />
    > Pokud ji budete chtít i přesto odstranit: <br />
    > `git branch -D my_new_branch`
-
+- Více příkazů na webu [scotch.io](https://scotch.io/bar-talk/git-cheat-sheet)
 
 

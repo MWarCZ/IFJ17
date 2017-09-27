@@ -67,6 +67,13 @@ Cílem projektu je vytvořit překladač v jazyce C pro rádoby jazyk FreeBASIC,
 - Miroslav Válka [![MWarCZ][github icon]](https://github.com/MWarCZ) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/miroslav-valka-196460)
 - Jan Trněný [![xtrnen][github icon]](https://github.com/xtrnen) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/jan-trneny-196461)
 - Lukáš Prokop [![Prokopl][github icon]](https://github.com/Prokopl) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/lukas-prokop-196015)
+- Pavel Bartoň [![pavel-barton][github icon]](https://github.com/pavel-barton) [<img src='https://www.vutbr.cz/images/favicon_ostra.ico' width='24' />](https://www.vutbr.cz/lide/pavel-barton-196255)
+
+------------
+
+## Pravidla pro praci
+- Naleznete v souboru [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Pravidla nejsou na ozdobu!**
 
 ------------
 

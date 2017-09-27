@@ -5,6 +5,7 @@
 ##   xvalka05 Miroslav Válka            ##
 ##   xtrnen03 Jan Trněný                ##
 ##   xproko37 Lukáš Prokop              ##
+##   xbarto93 Pavel Bartoň              ##
 ##########################################
 
 .PHONY: all get-deps get-unittest build run test doc clean
