@@ -13,12 +13,22 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
 
+# Slozka se zdrojovymi kody projektu
 SOURCE_DIR=src/
+# Slozka se zkompilovanymi soubory ze zdrojovych kodu
 BUILD_DIR=build/
-DOCUMENTATION_DIR=doc/
+# Slozka s dokumentaci
+DOXYGEN_DIR=doc/doxygen/
+# Slozka se zdrojovymi kody unit testu
 TEST_DIR=test/
-TEST_BUILD_DIR=/test_build/
+# Slozka se zkompilovanymi unit testy
+TEST_BUILD_DIR=build_test/
+# Slozka s testovacim frameworkem pro unit testy
 TEST_FRAMEWORK_DIR=test_framework/
+# Jmeno vysledneho souboru = Jmeno IFJ17 prekladace
+RUN_FILE_NAME=ifj17
+# aaa
+ARCHIVE_DIR=archive/
 
 all: get-deps build
 	@echo $@
@@ -32,36 +42,55 @@ get-unittest:
 
 # Spusti zkompilovani unit testu.
 test-build: build
-	cd $(TEST_DIR) && $(MAKE)
+	cd $(TEST_DIR) && $(MAKE) \
+		BUILD_DIR=../$(TEST_BUILD_DIR) \
+		TEST_FRAMEWORK_DIR=../$(TEST_FRAMEWORK_DIR) \
+		SOURCE_OBJECTS_DIR=../$(BUILD_DIR)
 
 # Zkompiluje testy a spusti je.
 test: test-build
-	cd $(TEST_DIR) && $(MAKE) run
+	cd $(TEST_DIR) && $(MAKE) run \
+		BUILD_DIR=../$(TEST_BUILD_DIR) \
+		TEST_FRAMEWORK_DIR=../$(TEST_FRAMEWORK_DIR) \
+		SOURCE_OBJECTS_DIR=../$(BUILD_DIR)
 
 # Zkompiluje projekt (bez testu).
 build:
-	@cd $(SOURCE_DIR) && $(MAKE)
+	@cd $(SOURCE_DIR) && $(MAKE) \
+		BUILD_DIR=../$(BUILD_DIR) \
+		RUN_FILE_NAME=$(RUN_FILE_NAME)
 
 # Spusti zkompilovany projekt.
 run: build
-	@cd $(SOURCE_DIR) && $(MAKE) run
+	@cd $(SOURCE_DIR) && $(MAKE) run \
+		BUILD_DIR=../$(BUILD_DIR) \
+		RUN_FILE_NAME=$(RUN_FILE_NAME)
 
+# !!! Zatim funkcni
 %:
 	@cd $(TEST_DIR) && $(MAKE) $@
 
 # Zapne generovani automaticke dokumentace
 doc:
-	@if [ ! -d "$(DOCUMENTATION_DIR)" ]; then \
-		mkdir "$(DOCUMENTATION_DIR)"; \
-	fi
+	mkdir -p "$(DOXYGEN_DIR)"; \
 	doxygen
+
+# !!! Zatim neni dokonceno
+archive:
+	rm -Rf $(ARCHIVE_DIR)
+	cp -R $(SOURCE_DIR) $(ARCHIVE_DIR)
 
 # Vymaze vsechny slozky a soubory, ktere neni potreba uchovavat v repozitari
 clean:
 	printf "\n===== CLEAN =====\n\n"
-	rm -f -R "$(DOCUMENTATION_DIR)"
-	@cd $(SOURCE_DIR) && $(MAKE) clean
-	@cd $(TEST_DIR) && $(MAKE) clean
+	rm -f -R "$(DOXYGEN_DIR)"
+	@cd $(SOURCE_DIR) && $(MAKE) clean \
+		BUILD_DIR=../$(BUILD_DIR) \
+		RUN_FILE_NAME=$(RUN_FILE_NAME)
+	@cd $(TEST_DIR) && $(MAKE) clean \
+		BUILD_DIR=../$(TEST_BUILD_DIR) \
+		TEST_FRAMEWORK_DIR=../$(TEST_FRAMEWORK_DIR) \
+		SOURCE_OBJECTS_DIR=../$(BUILD_DIR)
 
 
 ## Soubor: ./Makefile
