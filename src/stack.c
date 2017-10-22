@@ -70,12 +70,18 @@ int StackPop(TStack *stack, TStackData *data) {
 
 void StackDestroy(TStack *stack) {
   //Uvolni polozky
+  StackEmpty(stack);
+
+  //Uvolni zasobnik
+  free(stack);
+}
+
+void StackEmpty(TStack *stack) {
   for (TStackItem *item = stack->top; item != NULL; item = item->next) {
     free(item);
   }
 
-  //Uvolni zasobnik
-  free(stack);
+  stack->top = NULL;
 }
 
 #endif

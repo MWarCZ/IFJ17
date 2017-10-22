@@ -15,7 +15,7 @@
  * @brief Struktura predstavujici data polozky zasobniku
  */
 typedef struct TStackData {
-  
+  int i;
 } TStackData;
 
 /**
@@ -61,6 +61,12 @@ int StackPop(TStack *stack, TStackData *data);
  * @param stack Ukazatel na zasobnik
  */
 void StackDestroy(TStack *stack);
+
+/**
+ * @brief Odstrani vsechny polozky zasobniku
+ * @param stack Ukazatel na zasobnik
+ */
+void StackEmpty(TStack *stack);
 
 #endif
 
