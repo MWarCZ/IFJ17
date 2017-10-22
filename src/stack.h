@@ -1,6 +1,6 @@
 //////////////////////////////////////////
 // Projekt: IFJ17                       //
-// Soubor: src/stack.c                 //
+// Soubor: src/stack.h                  //
 // Tým:                                 //
 //   xvalka05 Miroslav Válka            //
 //   xtrnen03 Jan Trněný                //
