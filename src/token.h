@@ -79,8 +79,9 @@ typedef enum {
   TK_MINUS, // -
   TK_MUL, // *
   TK_DIV, // /
-  TK_MOD, // \
-}
+  TK_MOD, // Mod
+  TK_DIV_INT
+} TTokenType;
 
 typedef union {
   char* name; // identifikator
@@ -95,5 +96,7 @@ typedef struct {
   TTokenData data; // data tokenu
   unsigned long int line; // cislo radku, kde se token nachazi
 } TToken;
+
+#endif
 
 // Soubor: src/token.h
