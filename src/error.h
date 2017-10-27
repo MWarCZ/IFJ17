@@ -12,13 +12,13 @@
 #define ERROR_H
 
 typedef enum{
-    ERR_OK = 0;             //Everything is fine ;)
-    ERR_LEX = 1;            //error in lexical analyzer
-    ERR_SYN = 2;            //error in syntactic analyzer
-    ERR_SEM = 3;            //Semantics error for undefined function/variable
-    ERR_COMP = 4;           //Semantics error for uncompatible aritmetics, strings, wrong function arguments
-    ERR_SEM_OTHER = 6;      //other semantics error
-    ERR_INTERNAL = 99;      //internal error 
+    ERR_OK = 0,             //Everything is fine ;)
+    ERR_LEX = 1,            //error in lexical analyzer
+    ERR_SYN = 2,            //error in syntactic analyzer
+    ERR_SEM = 3,            //Semantics error for undefined function/variable
+    ERR_COMP = 4,           //Semantics error for uncompatible aritmetics, strings, wrong function arguments
+    ERR_SEM_OTHER = 6,      //other semantics error
+    ERR_INTERNAL = 99      //internal error 
 }TError;
 
 extern TError ERR_EXIT_STATUS;

@@ -1,6 +1,6 @@
 //////////////////////////////////////////
 // Projekt: IFJ17                       //
-// Soubor: src/error.h                  //
+// Soubor: src/error.c                  //
 // Tým:                                 //
 //   xvalka05 Miroslav Válka            //
 //   xtrnen03 Jan Trněný                //
@@ -30,7 +30,7 @@ void DefError(TError err){
         case ERR_SEM:
             fprintf(stderr,"Semantics error for undefined function/variable\n");
             break;
-        case ERR_SEM:
+        case ERR_COMP:
             fprintf(stderr,"Semantics error for uncompatible aritmetics, strings, wrong function arguments\n");
             break;
         case ERR_SEM_OTHER:
