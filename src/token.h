@@ -1,6 +1,6 @@
 //////////////////////////////////////////
 // Projekt: IFJ17                       //
-// Soubor: cesta/nazev_souboru.c        //
+// Soubor: src/token.h                  //
 // Tým:                                 //
 //   xvalka05 Miroslav Válka            //
 //   xtrnen03 Jan Trněný                //
@@ -8,8 +8,8 @@
 //   xbarto93 Pavel Bartoň              //
 //////////////////////////////////////////
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef TOKEN_H
+#define TOKEN_H
 
 typedef enum {
   TK_COMMA, // ,
