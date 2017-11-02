@@ -11,7 +11,7 @@
 #ifndef DSTRING_H
 #define DSTRING_H
 
-#define ALLOC_STEP 5
+#define ALLOC_STEP 50
 
 typedef struct TString {
     char *string;
