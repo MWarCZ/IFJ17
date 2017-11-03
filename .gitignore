@@ -3,8 +3,6 @@
 build/
 # Obsahuje zkompilovsne testy z test/
 build_test/
-# Dokumentace prijektu - generovana
-doc/
 # Adresar s jednoduchym testovscim frameworkem
 test_framework/
 
