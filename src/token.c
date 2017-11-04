@@ -12,6 +12,7 @@
 #define TOKEN_C
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "token.h"
 
 void PrintTokenType(TTokenType type) {
@@ -86,6 +87,24 @@ void PrintTokenType(TTokenType type) {
     case TK_DIV_INT: printf("Token: TK_DIV_INT\n"); break;
     default: printf("Token: ......\n"); break;
   } 
+}
+
+
+TToken* TokenInit() {
+  TToken* tkn;
+  if ((tkn = malloc(sizeof(TToken))) == NULL) {
+    return NULL; 
+  }
+  tkn->type = TK_NA;
+  tkn->string = NULL;
+  return tkn;
+}
+
+void TokenDestroy(TToken* tkn) {
+  if(tkn->string != NULL) {
+    free(tkn->string);
+  }
+  free(tkn);
 }
 
 #endif

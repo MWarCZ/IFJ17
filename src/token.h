@@ -85,21 +85,37 @@ typedef enum {
 } TTokenType;
 
 typedef union {
-  char* name; // identifikator
   int integerValue; // cela cisla
   double doubleValue; // desetinna cisla
   char charValue; // znak 'x'
-  char* stringValue; // string "xxx"
 } TTokenData;
 
 typedef struct {
   TTokenType type; // typ tokenu
-  TTokenData data; // data tokenu
+  char* string; // textove data tokenu
+  TTokenData data; //ciselne data tokenu
   unsigned long int line; // cislo radku, kde se token nachazi
 } TToken;
 
 
+/**
+ * @brief Vypis typu tokenu na vystup. (Primarne urceno pro kontrolu.)
+ * @param type Typ tokenu, pro vypsani na vystup. 
+ */
 void PrintTokenType(TTokenType type);
+
+/**
+ * @brief Inicializuje token.
+ * @return Ukazatel na inicializovany token, nebo NULL pri chybe.
+ */
+TToken* TokenInit();
+
+/**
+ * @brief Uvolni ukazatel z pameti i se textovym retezcem v nem.
+ * @param s Ukazatel na token.
+ */
+void TokenDestroy(TToken* tkn);
+
 
 #endif
 
