@@ -15,13 +15,44 @@
 #include <stdlib.h>
 #include "token.h"
 
+// TODO: Pokud vyjde cast, tak z globalnich promenych predelat na parametry funkci.
 
+/**
+ * @brief Uklada stav zda se bude cist novy znak ze vstupu nebo se bude pokracovat s jiz nactenym znakem.
+ */
 extern int repeatLastChar;
+/**
+ * @brief Ukozatel na prave nacitany token.
+ */
 extern TToken* readToken;
+/**
+ * @brief Prave nacteny znak, ktery se zpracovava.
+ */
 extern int readLastChar;
+/**
+ * @brief Cislo prave zpracovavaneho radku ze vstupu.
+ */
 extern unsigned long int readLineNumber;
 
+//--------------------------
+
+/**
+ * @brief Rozhoduje zda znak c patri mezi znaky, ktere je dovoleno ignorovat.
+ * @param  c Znak o kterem chceme vedet zda ho ignorovat.
+ * @return Vraci 1 pokud muze byt znak ignorovan, jinak vraci 0.
+ */
+int CanBeIgnored(char c);
+
+/**
+ * @brief Nacita vstup, ktery prevede na token.
+ * @return Ukazatel na nove nacteny token.
+ */
 TToken* GetNextToken();
+
+//--------------------------
+
+// Stavove funkce
+// Jedna se o interni funkce, ktere zjednodusuji detekci typu tokenu.
 void State_InlineComment();
 void State_DivOrMultilineComment();
 void State_ID();
