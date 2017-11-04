@@ -12,6 +12,7 @@
 #define TOKEN_H
 
 typedef enum {
+  TK_NA = 0, // Token niceho
   TK_COMMA, // ,
   TK_EOF, // konec souboru
   TK_EOL, // znak konce radku
@@ -96,6 +97,9 @@ typedef struct {
   TTokenData data; // data tokenu
   unsigned long int line; // cislo radku, kde se token nachazi
 } TToken;
+
+
+void PrintTokenType(TTokenType type);
 
 #endif
 
