@@ -90,6 +90,19 @@ int StringAssign(TString *s, char *str) {
   return 1;
 }
 
+char *StringCopy(TString *s) {
+  char *str = NULL;
+  
+  if ((str = malloc((s->length + 1) * sizeof(char))) == NULL) {
+    return NULL; //Alokace pameti selhala
+  }
+
+  strcpy(str, s->string);
+  str[s->length] = '\0';
+
+  return str;
+}
+
 void StringEmpty(TString *s) {
   memset(s->string, '\0', s->allocLength); //Nastavi vsechny bajty retezce na \0
   s->length = 0;
