@@ -202,6 +202,7 @@ void State_ID() {
   }
   repeatLastChar = 1;
   readToken->type = TK_ID;
+  readToken->string = StringCopy(readString);
 }
 
 
@@ -223,6 +224,7 @@ void State_Number() {
   else {
     repeatLastChar = 1;
     readToken->type = TK_NUM_INTEGER;
+    readToken->string = StringCopy(readString);
   }
 }
 
@@ -249,6 +251,7 @@ void State_Double() {
   else {
     repeatLastChar = 1;
     readToken->type = TK_NUM_DOUBLE;
+    readToken->string = StringCopy(readString);
   }
 }
 
@@ -277,8 +280,9 @@ void State_DoubleE() {
     //String
     StringAdd(readString,readLastChar);
   }
-  readToken->type = TK_NUM_DOUBLE;
   repeatLastChar = 1;
+  readToken->type = TK_NUM_DOUBLE;
+  readToken->string = StringCopy(readString);
 }
 
 void State_ExMark() {
@@ -301,6 +305,7 @@ void State_String() {
     }
     else if( readLastChar=='\'' ) {
       readToken->type = TK_STRING;
+      readToken->string = StringCopy(readString);
       return;
     }
     else if( readLastChar==EOF || readLastChar=='\n' ) {
@@ -372,6 +377,21 @@ void State_LessThan() {
     readToken->type = TK_LESS;
     repeatLastChar = 1;
   }
+}
+
+
+// Funkci je mozne volat v main.
+// Pro oskouseni zpracovavani vstupu do vystupnich tokenu.
+void TestParser() {
+  TTokenType tmp=0;
+  printf("Token - Ctrl+d = EOF \n");
+  do {
+    TToken* tkn = GetNextToken();
+    //PrintTokenType(tkn->type);
+    PrintToken(tkn);
+    tmp = tkn->type; 
+    TokenDestroy(tkn);
+  } while(tmp != TK_EOF && !ERR_EXIT_STATUS);
 }
 
 #endif

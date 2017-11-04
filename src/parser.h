@@ -69,6 +69,11 @@ void State_DoubleE();
 void State_String();
 void State_SpecialChar();
 
+/**
+ * @brief Funkce umoznuje overit si zda parser spravne funguje. Zpracovava stdin a na vystup tiskne informace o Tokenech nebo o chybe.
+ * Staci funkci zavola v tele main.
+ */
+void TestParser();
 
 #endif
 
