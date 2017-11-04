@@ -11,6 +11,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+extern char* TokenTypes[];
+
 typedef enum {
   TK_NA = 0, // Token niceho
   TK_COMMA, // ,
@@ -103,6 +105,12 @@ typedef struct {
  * @param type Typ tokenu, pro vypsani na vystup. 
  */
 void PrintTokenType(TTokenType type);
+
+/**
+ * @brief Vypis tokenu na vystup. Konkretne typ tokenu a obsah stringu. (Primarne urceno pro kontrolu.)
+ * @param type Token pro vypsani na vystup. 
+ */
+void PrintToken(TToken* tkn); 
 
 /**
  * @brief Inicializuje token.
