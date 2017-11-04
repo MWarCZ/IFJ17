@@ -18,12 +18,14 @@
 #include "parser.h"
 #include "token.h"
 #include "error.h"
+#include "dstring.h"
 
 
 int repeatLastChar = 0;
 TToken* readToken;
 int readLastChar;
 unsigned long int readLineNumber = 1;
+TString* readString;
 
 int CanBeIgnored(char c) {
   char* ignor = "\n\t\r \v";
@@ -37,13 +39,18 @@ int CanBeIgnored(char c) {
 }
 
 TToken* GetNextToken() {
-
-  if( (readToken=malloc(sizeof(TToken)))==NULL ) {
+  if( (readToken=TokenInit())==NULL ) {
     // ERR_INTERNAL
     CallError(ERR_INTERNAL);
     return NULL;
   }
-  readToken->type = TK_NA;
+
+  if( (readString = StringInit())==NULL ) {
+    // ERR_INTERNAL
+    CallError(ERR_INTERNAL);
+    return NULL;
+  }
+  
 
   do {
     // Znovuzpracovani posledniho znaku nebo nacteni noveho.
@@ -65,12 +72,14 @@ TToken* GetNextToken() {
       }
     }
     else if( isalpha(readLastChar) || readLastChar=='_' ) {
-      //StringAdd(s,readLastChar);
+      //String
+      StringAdd(readString,readLastChar);
       State_ID();
       break;
     }
     else if( isdigit(readLastChar) ) {
-      //StringAdd(s,readLastChar);
+      //String
+      StringAdd(readString,readLastChar);
       State_Number();
       break;
     }
@@ -136,6 +145,9 @@ TToken* GetNextToken() {
   } while(!ERR_EXIT_STATUS);
 
   readToken->line = readLineNumber;
+  //readToken->string = StringMinClone(readString);
+  //printf("%s\n",readString->string);
+  StringDestroy(readString);
   return readToken;
 }
 
@@ -185,7 +197,8 @@ void State_MultilineComment() {
 
 void State_ID() {
   while( isalnum(readLastChar=getchar()) || readLastChar == '_' ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
   }
   repeatLastChar = 1;
   readToken->type = TK_ID;
@@ -194,14 +207,17 @@ void State_ID() {
 
 void State_Number() {
   while( isdigit(readLastChar=getchar()) ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
   }
   if( readLastChar=='.' ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
     State_Double();
   }
   else if( readLastChar=='E' || readLastChar=='e' ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
     State_CanDoubleE();
   }
   else {
@@ -218,13 +234,16 @@ void State_Double() {
     CallError(ERR_LEX);
     return;
   }
-  //StringAdd(s,readLastChar);
+  //String
+  StringAdd(readString,readLastChar);
   
   while( isdigit(readLastChar=getchar()) ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
   }
   if( readLastChar=='E' || readLastChar=='e' ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
     State_CanDoubleE();
   }
   else {
@@ -236,12 +255,14 @@ void State_Double() {
 void State_CanDoubleE() {
   readLastChar=getchar();
   if( readLastChar=='+' || readLastChar=='-' ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
     readLastChar=getchar();
   }
 
   if( isdigit(readLastChar) ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
     State_DoubleE();
   }
   else {
@@ -253,7 +274,8 @@ void State_CanDoubleE() {
 
 void State_DoubleE() {
   while( isdigit(readLastChar=getchar()) ) {
-    //StringAdd(s,readLastChar);
+    //String
+    StringAdd(readString,readLastChar);
   }
   readToken->type = TK_NUM_DOUBLE;
   repeatLastChar = 1;
@@ -288,7 +310,8 @@ void State_String() {
       return;
     }
     else {
-      //StringAdd(s,readLastChar);
+      //String
+      StringAdd(readString,readLastChar);
     }
   } while(1);
 }
@@ -300,22 +323,28 @@ void State_SpecialChar() {
   else {
     switch( readLastChar ) {
       case 'n': 
-        //StringAdd(s, (char)(10) );
+        //String
+        StringAdd(readString, '\n' );
         break;
       case 'r': 
-        //StringAdd(s, (char)(10) );
+        //String
+        StringAdd(readString, '\r' );
         break;
       case 't': 
-        //StringAdd(s, (char)(10) );
+        //String
+        StringAdd(readString, '\t' );
         break;
       case '\\': 
-        //StringAdd(s, (char)(10) );
+        //String
+        StringAdd(readString, '\\' );
         break;
       case '\"': 
-        //StringAdd(s, (char)(10) );
+        //String
+        StringAdd(readString, '\"' );
         break;
       case '\'': 
-        //StringAdd(s, (char)(10) );
+        //String
+        StringAdd(readString, '\'' );
         break;
       default:
         // ERR_LEX
