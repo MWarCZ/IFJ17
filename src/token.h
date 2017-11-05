@@ -64,6 +64,7 @@ typedef enum {
   // ciselne konstanty
   TK_NUM_INTEGER,
   TK_NUM_DOUBLE,
+  TK_NUM_STRING,
 
   // porovnavaci operatory
   TK_EQUAL, // =

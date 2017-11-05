@@ -304,7 +304,7 @@ void State_String() {
       State_SpecialChar();
     }
     else if( readLastChar=='\'' ) {
-      readToken->type = TK_STRING;
+      readToken->type = TK_NUM_STRING;
       readToken->string = StringCopy(readString);
       return;
     }

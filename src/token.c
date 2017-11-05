@@ -60,6 +60,7 @@ char* TokenTypes[] = {
   "TK_TRUE",
   "TK_NUM_INTEGER",
   "TK_NUM_DOUBLE",
+  "TK_NUM_STRING",
   "TK_EQUAL",
   "TK_NOT_EQUAL",
   "TK_LESS", 
