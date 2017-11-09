@@ -68,4 +68,8 @@ void StringEmpty(TString *s);
  */
 void StringDestroy(TString *s);
 
+/**
+ * @brief POSIX Strdup
+ * */
+char *strdup (const char *s);
 #endif

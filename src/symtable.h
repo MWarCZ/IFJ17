@@ -7,71 +7,118 @@
 //   xproko37 Lukáš Prokop              //
 //   xbarto93 Pavel Bartoň              //
 //////////////////////////////////////////
-#include "error.h"
-#include "token.h"
-#include "dstring.h"
-#include "token.h"
 
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
 
-/**
- * @brief Struktura popisující prvek tabulky
- * 
- * 
- * 
-**/
-typedef struct htab_LI{
-    struct htab_LI* next;   //ukazatel na následující prvek
-    char key[];             //název identifikátoru
-    TToken *token;          //data o daném symbolu (tokenu)
-}htab_listItem;
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include "error.h"
+#include "token.h"
+#include "dstring.h"
+
+#define TABLE_SIZE 100
 
 /**
- * @brief Struktura popisující hashovací tabulku
- * 
- * 
+ * @brief Typ elementu
  * */
-typedef struct htab{
-    unsigned htab_size;     //velikost tabulky
-    struct htab_LI* list[]; //pole tabulky
-} htab_t;
+typedef enum{
+    SYM_TYPE_VAR,
+    SYM_TYPE_PARAM,
+    SYM_TYPE_FUNCTION
+} st_elemtype_t;
+
+/**
+ * @brief Typ dat elementu
+ * */
+typedef enum{
+    SYM_DATATYPE_ERROR,
+    SYM_DATATYPE_VOID,
+    SYM_DATATYPE_INT,
+    SYM_DATATYPE_DOUBLE,
+    SYM_DATATYPE_STRING
+} st_datatype_t;
+
+/**
+ * @brief hodnota elementu
+ * */
+typedef union{
+    int iElemVal;
+    double dElemVal;
+    char *sElemVal;
+} st_value_t;
+
+typedef struct symtable_t symtable_t;
+
+/**
+ * @brief struktura elementu tabulky 
+ * */
+typedef struct symtable_elem_t{
+    char *name;
+    st_elemtype_t elemType;
+    st_datatype_t dataType;
+    st_value_t value;
+    bool declared;
+    bool defined;
+    symtable_t *local_symtable;
+    struct symtable_elem_t *nextElem;
+} symtable_elem_t;
+
+/**
+ * @brief struktura tabulka
+ * */
+struct symtable_t{
+    struct symtable_elem_t **array;
+    size_t size;
+};
 
 /**
  * @brief Rozptylovací funkce
+ * @param pole charů
  * */
-unsigned hash_function(char *str);
-/**
- * @brief Vytvoří a inicializuje tabulku
- * */
-htab_t *htab_init(unsigned size);
-/**
- * @brief Hleda v tabulce podle zadaného klíče
- * 
- * */
-htab_listItem *htab_find(htab_t *t, char *key);
-/**
- * @brief Vytváří prvek seznamu
- * */
-htab_listItem *htab_create(htab_t *t, char *key);
-/**
- * @brief Provádí funkci pro každý prvek
- * */
-void htab_foreach(htab_t *t, void (*function)(char *key, ??,htab_listItem *item));
-/**
- * @brief odstraní prvek podle zadaného klíče
- * */
-bool htab_remove(htab_t *t,const char *key);
-/**
- * @brief Zruší všechny prvky tabulky a tabulka zůstane prázdná
- * 
- * */
-void htab_clear(htab_t *t);
-/**
- * @brief Zruší celou tabulku
- * */
-void htab_free(htab_t *t);
+unsigned hash_function(const char *str);
 
+/**
+ * @brief Inicializace Hash tabulky 
+ * */
+symtable_t *SymtableInit();
+
+/**
+ * @brief Vyhledá funkci
+ * @param
+ * */
+symtable_elem_t *SymtableFind(symtable_t *globalTable, char *globalToken);
+
+/**
+ * @brief Vyhledá ve funkci záznam o proměnné
+ * @param
+ * */
+symtable_elem_t *SymtableFindLocal(symtable_t *globalTable, char *globalToken, char *localToken);
+
+/**
+ * @brief Přidá element do globální tabulky
+ * 
+ * */
+symtable_elem_t *AddElemGlobal(symtable_t *globalTable, char *globalToken);
+
+/**
+ * @brief inicializace lokální tabulky
+ * @param
+ * */
+symtable_elem_t *AddElemLocal(symtable_t *globalTable, char *globalToken, char *localToken);
+
+/**
+ * @brief Doplní hodnoty struktury elementu
+ * 
+ * */
+void ElementBuiltIn(symtable_t *globalTable);
+
+/**
+ * @brief Zruší tabulku 
+ * @param
+ * */
+void SymtableFree(symtable_t *globalTable);
 #endif
 
 //  src/symtable.h
