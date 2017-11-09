@@ -1,6 +1,6 @@
 //////////////////////////////////////////
 // Projekt: IFJ17                       //
-// Soubor: src/parser.h                 //
+// Soubor: src/scanner.h                //
 // Tým:                                 //
 //   xvalka05 Miroslav Válka            //
 //   xtrnen03 Jan Trněný                //
@@ -73,9 +73,9 @@ void State_SpecialChar();
  * @brief Funkce umoznuje overit si zda parser spravne funguje. Zpracovava stdin a na vystup tiskne informace o Tokenech nebo o chybe.
  * Staci funkci zavola v tele main.
  */
-void TestParser();
+void TestScanner();
 
 #endif
 
-// Soubor: src/parser.h
+// Soubor: src/scanner.h
 

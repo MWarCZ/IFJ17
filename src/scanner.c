@@ -1,6 +1,6 @@
 //////////////////////////////////////////
 // Projekt: IFJ17                       //
-// Soubor: src/parser.c                 //
+// Soubor: src/scanner.c                //
 // Tým:                                 //
 //   xvalka05 Miroslav Válka            //
 //   xtrnen03 Jan Trněný                //
@@ -9,13 +9,13 @@
 //////////////////////////////////////////
 
 
-#ifndef PARSER_C
-#define PARSER_C
+#ifndef SCANNER_C
+#define SCANNER_C
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "parser.h"
+#include "scanner.h"
 #include "token.h"
 #include "error.h"
 #include "dstring.h"
@@ -286,7 +286,7 @@ void State_DoubleE() {
 }
 
 void State_ExMark() {
-  if( (readLastChar=getchar())=='\'' ) {
+  if( (readLastChar=getchar())=='\"' ) {
     State_String();
   }
   else {
@@ -302,8 +302,11 @@ void State_String() {
 
     if( readLastChar=='\\' ) {
       State_SpecialChar();
+      if(ERR_EXIT_STATUS) {
+        return;
+      }
     }
-    else if( readLastChar=='\'' ) {
+    else if( readLastChar=='\"' ) {
       readToken->type = TK_NUM_STRING;
       readToken->string = StringCopy(readString);
       return;
@@ -323,7 +326,38 @@ void State_String() {
 
 void State_SpecialChar() {
   if( isdigit(readLastChar=getchar()) ) {
+    // \0 
+    TString* tmpString;
+    tmpString = StringInit();
+    StringAdd(tmpString, readLastChar);
 
+    if( isdigit(readLastChar=getchar()) ) {
+      // \00
+      StringAdd(tmpString, readLastChar);
+      if( isdigit(readLastChar=getchar()) ) {
+        // \000
+        StringAdd(tmpString, readLastChar);
+        int tmpChar = atoi(tmpString->string);
+        if( tmpChar >= 1 && tmpChar <= 255 ) {
+          // String
+          StringAdd(readString, (char)tmpChar );
+        }
+        else {
+          // LEX_ERR
+          CallError(ERR_LEX);
+        }
+      }
+      else {
+        // LEX_ERR
+        CallError(ERR_LEX);
+      }
+    }
+    else {
+      // LEX_ERR
+      CallError(ERR_LEX);
+    }
+
+    StringDestroy(tmpString);
   }
   else {
     switch( readLastChar ) {
@@ -382,9 +416,12 @@ void State_LessThan() {
 
 // Funkci je mozne volat v main.
 // Pro oskouseni zpracovavani vstupu do vystupnich tokenu.
-void TestParser() {
+// int main() {
+//   TestScanner();
+// }
+void TestScanner() {
   TTokenType tmp=0;
-  printf("Token - Ctrl+d = EOF \n");
+  printf("Token Test - Ctrl+d = EOF \n");
   do {
     TToken* tkn = GetNextToken();
     //PrintTokenType(tkn->type);
@@ -396,5 +433,5 @@ void TestParser() {
 
 #endif
 
-// Soubor: src/parser.c
+// Soubor: src/scanner.c
 
