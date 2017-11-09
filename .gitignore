@@ -13,3 +13,6 @@ test_framework/
 # Logovaci soubory
 *.log
 
+# Pomocna slozka pro vytvoreni archivu k odevzdani
+archive/
+
