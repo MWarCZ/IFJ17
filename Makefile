@@ -26,7 +26,7 @@ TEST_BUILD_DIR=build_test/
 # Slozka s testovacim frameworkem pro unit testy
 TEST_FRAMEWORK_DIR=test_framework/
 # Jmeno vysledneho souboru = Jmeno IFJ17 prekladace
-RUN_FILE_NAME=ifj17
+RUN_FILE_NAME=run
 # aaa
 ARCHIVE_DIR=archive/
 
@@ -66,7 +66,7 @@ run: build
 		BUILD_DIR=../$(BUILD_DIR) \
 		RUN_FILE_NAME=$(RUN_FILE_NAME)
 
-# !!! Zatim funkcni
+# !!! Zatim nefunkcni
 %:
 	@cd $(TEST_DIR) && $(MAKE) $@
 
