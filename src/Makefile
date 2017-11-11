@@ -11,22 +11,20 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g -I .
 
-BUILD_DIR=../build/
+BUILD_DIR=build/
 SOURCE=$(wildcard *c)
 OBJECTS:=$(SOURCE:.c=.o)
 OBJECTS:=$(addprefix $(BUILD_DIR),$(OBJECTS))
-
+RUN_FILE_NAME=run
 
 all: build
 
 build_dir:
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-		mkdir $(BUILD_DIR); \
-	fi
+	mkdir -p $(BUILD_DIR);
 
-build: build_dir $(OBJECTS) $(BUILD_DIR)run
+build: build_dir $(OBJECTS) $(BUILD_DIR)$(RUN_FILE_NAME)
 
-$(BUILD_DIR)run: $(OBJECTS)
+$(BUILD_DIR)$(RUN_FILE_NAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 ### START: Dynamicke vytvoreni cilu s volitelnymi prerekvizitami
@@ -43,7 +41,7 @@ $(foreach target,$(TARGETS),$(eval $(call BUILD_TARGET,$(target))))
 
 run: build
 	@printf "\n===== RUN =====\n\n"
-	@./$(BUILD_DIR)run
+	@./$(BUILD_DIR)$(RUN_FILE_NAME)
 
 clean:
 	@printf "\n===== CLEAN =====\n\n"
