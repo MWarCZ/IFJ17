@@ -8,8 +8,8 @@
 //   xbarto93 Pavel Bartoň              //
 //////////////////////////////////////////
 
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef SCANNER_H
+#define SCANNER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +70,7 @@ void State_String();
 void State_SpecialChar();
 
 /**
- * @brief Funkce umoznuje overit si zda parser spravne funguje. Zpracovava stdin a na vystup tiskne informace o Tokenech nebo o chybe.
+ * @brief Funkce umoznuje overit si zda scanner spravne funguje. Zpracovava stdin a na vystup tiskne informace o Tokenech nebo o chybe.
  * Staci funkci zavola v tele main.
  */
 void TestScanner();

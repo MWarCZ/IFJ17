@@ -73,7 +73,7 @@ TToken* GetNextToken() {
     }
     else if( isalpha(readLastChar) || readLastChar=='_' ) {
       //String
-      StringAdd(readString,readLastChar);
+      StringAdd(readString, tolower(readLastChar) );
       State_ID();
       break;
     }
@@ -198,7 +198,7 @@ void State_MultilineComment() {
 void State_ID() {
   while( isalnum(readLastChar=getchar()) || readLastChar == '_' ) {
     //String
-    StringAdd(readString,readLastChar);
+    StringAdd(readString,tolower(readLastChar) );
   }
   repeatLastChar = 1;
   readToken->type = TK_ID;
