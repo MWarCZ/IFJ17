@@ -17,14 +17,14 @@
  * @brief Konvert retezce na int nebo double. V pripade TK_ID vola filtr na klicova slova.
  * @param token Ukazatel na strukturu TToken.
  */
-void convert(TToken *token);
+void Convert(TToken *token);
 
 
 /**
  * @brief Filtr na klicova slova.
  * @param token Ukazatel na strukturu TToken.
  */
-void keywordFilter(TToken *token);
+void KeywordFilter(TToken *token);
 
 #endif
 

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "conversion.h"
 #include "token.h"
+#include "ctype.h"
 
 TTokenType keywords[] = {
   TK_AS,
@@ -55,7 +56,7 @@ TTokenType keywords[] = {
   TK_TRUE,
 };
 
-void convert(TToken *token) {
+void Convert(TToken *token) {
   switch(token->type) {
     case TK_NUM_INTEGER:
       token->data.integerValue = strtol(token->string, NULL, 10);
@@ -64,17 +65,30 @@ void convert(TToken *token) {
       token->data.doubleValue = strtod(token->string, NULL);
       break;
     case TK_ID:
-      keywordFilter(token);
+      KeywordFilter(token);
       break;
     default:
       break;
   }
 }
 
-void keywordFilter(TToken *token) {
+void KeywordFilter(TToken *token) {
   int len = sizeof(keywords) / sizeof(keywords[0]);
+
+  char* str = token->string;
+  char string[15];
+  strcpy(string, str);
+
+  for (unsigned int i = 0; i < strlen(string); i++) {
+    string[i+3] = toupper(str[i]);
+  }
+
+  string[0] = 'T';
+  string[1] = 'K';
+  string[2] = '_';
+
   for (int i = 0; i < len; i++) {
-    if (strcmp(token->string, TokenTypes[keywords[i]]) == 0) {
+    if (strcmp(string, TokenTypes[keywords[i]]) == 0) {
       token->type = keywords[i];
       break;
     }
