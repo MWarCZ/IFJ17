@@ -19,7 +19,7 @@
 #include "token.h"
 #include "error.h"
 #include "dstring.h"
-
+#include "conversion.h"
 
 int repeatLastChar = 0;
 TToken* readToken;
@@ -148,6 +148,7 @@ TToken* GetNextToken() {
   //readToken->string = StringMinClone(readString);
   //printf("%s\n",readString->string);
   StringDestroy(readString);
+  Convert(readToken);
   return readToken;
 }
 
