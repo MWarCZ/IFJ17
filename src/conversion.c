@@ -76,10 +76,10 @@ void KeywordFilter(TToken *token) {
   int len = sizeof(keywords) / sizeof(keywords[0]);
 
   char* str = token->string;
-  char string[15];
-  strcpy(string, str);
+  char string[15] = "";
+  //strcpy(string, str);
 
-  for (unsigned int i = 0; i < strlen(string); i++) {
+  for (unsigned int i = 0; i < strlen(str); i++) {
     string[i+3] = toupper(str[i]);
   }
 
