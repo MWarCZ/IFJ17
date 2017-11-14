@@ -16,16 +16,23 @@
 #include "symtable.h"
 #include "error.h"
 
+/*Vlastní strdup*/
+char *strdup (const char *s) {
+    char *d = malloc (strlen (s) + 1);   
+    if (d == NULL) return NULL;          
+    strcpy (d,s);                        
+    return d;                            
+}
+
 /*Inicializace tabulky*/
-symtable_t *SymtableInit(){
-    symtable_t *t = malloc(sizeof(symtable_t));
-    t->array = malloc(sizeof(struct symtable_elem_t)*TABLE_SIZE);     //dynamicka alokace hashovaci tabulky
-    if(t == NULL)  { return NULL; }
-    t->size=TABLE_SIZE;                                               //inicializace arr_size
-    for(unsigned int i=0;i<TABLE_SIZE;i++){                           //cyklus inicializace pole seznamů
-        t->array[i]=NULL;
+void SymtableInit(symtable_t **t){
+    *t = (symtable_t*) malloc(sizeof(symtable_elem_t)*TABLE_SIZE);
+    if(*t == NULL){
+        CallError(ERR_INTERNAL);
     }
-    return t; 
+    for(int i = 0;i < TABLE_SIZE; i++){
+        (*t)->array[i] = NULL;
+    }
 }
 
 /*Vložení prvku*/

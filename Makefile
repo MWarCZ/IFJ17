@@ -1,6 +1,6 @@
 ##########################################
 ## Projekt: IFJ17                       ##
-## Soubor: ./Makefile                   ##
+## Soubor: src/Makefile                 ##
 ## Tým:                                 ##
 ##   xvalka05 Miroslav Válka            ##
 ##   xtrnen03 Jan Trněný                ##
@@ -8,61 +8,45 @@
 ##   xbarto93 Pavel Bartoň              ##
 ##########################################
 
-.PHONY: all get-deps get-unittest build run test doc clean
-
 CC=gcc
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -g -I .
 
-SOURCE_DIR=src/
 BUILD_DIR=build/
-DOCUMENTATION_DIR=doc/
-TEST_DIR=test/
-TEST_BUILD_DIR=/test_build/
-TEST_FRAMEWORK_DIR=test_framework/
+SOURCE=$(wildcard *c)
+OBJECTS:=$(SOURCE:.c=.o)
+OBJECTS:=$(addprefix $(BUILD_DIR),$(OBJECTS))
+RUN_FILE_NAME=run
 
-all: get-deps build
-	@echo $@
+all: build
 
-# Stahne zavislosti potrebne ke kompilaci.
-get-deps: get-unittest
+build_dir:
+	mkdir -p $(BUILD_DIR);
 
-# Stazeni frameworku pro unit testy.
-get-unittest:
-	cd $(TEST_DIR) && $(MAKE) get-deps
+build: build_dir $(OBJECTS) $(BUILD_DIR)$(RUN_FILE_NAME)
 
-# Spusti zkompilovani unit testu.
-test-build: build
-	cd $(TEST_DIR) && $(MAKE)
+$(BUILD_DIR)$(RUN_FILE_NAME): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-# Zkompiluje testy a spusti je.
-test: test-build
-	cd $(TEST_DIR) && $(MAKE) run
+### START: Dynamicke vytvoreni cilu s volitelnymi prerekvizitami
 
-# Zkompiluje projekt (bez testu).
-build:
-	@cd $(SOURCE_DIR) && $(MAKE)
+TARGETS=$(OBJECTS) 
+define BUILD_TARGET 
+$(1): $(wildcard $(1:$(BUILD_DIR)%.o=%.c)) $(wildcard $(1:$(BUILD_DIR)%.o=%.h)) 
+	@#echo "$$@ >> $$^ <<" 
+	$(CC) $(CFLAGS) -c -o $$@ $$<
+endef 
+$(foreach target,$(TARGETS),$(eval $(call BUILD_TARGET,$(target)))) 
 
-# Spusti zkompilovany projekt.
+### END 
+
 run: build
-	@cd $(SOURCE_DIR) && $(MAKE) run
+	@printf "\n===== RUN =====\n\n"
+	@./$(BUILD_DIR)$(RUN_FILE_NAME)
 
-%:
-	@cd $(TEST_DIR) && $(MAKE) $@
-
-# Zapne generovani automaticke dokumentace
-doc:
-	@if [ ! -d "$(DOCUMENTATION_DIR)" ]; then \
-		mkdir "$(DOCUMENTATION_DIR)"; \
-	fi
-	doxygen
-
-# Vymaze vsechny slozky a soubory, ktere neni potreba uchovavat v repozitari
 clean:
-	printf "\n===== CLEAN =====\n\n"
-	rm -f -R "$(DOCUMENTATION_DIR)"
-	@cd $(SOURCE_DIR) && $(MAKE) clean
-	@cd $(TEST_DIR) && $(MAKE) clean
+	@printf "\n===== CLEAN =====\n\n"
+	rm -f -R $(BUILD_DIR)
 
 
-## Soubor: ./Makefile
+## Soubor: src/Makefile
 

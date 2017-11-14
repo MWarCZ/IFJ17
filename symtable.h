@@ -81,8 +81,9 @@ unsigned hash_function(const char *str);//
 
 /**
  * @brief Inicializace Hash tabulky 
+ * @param
  * */
-symtable_t *SymtableInit();//
+void SymtableInit(symtable_t **globalTable);//
 
 /**
  * @brief Vyhledá funkci
