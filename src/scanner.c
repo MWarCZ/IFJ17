@@ -149,6 +149,9 @@ TToken* GetNextToken() {
   //printf("%s\n",readString->string);
   StringDestroy(readString);
   Convert(readToken);
+
+  PrintToken(readToken);// DEBUG
+
   return readToken;
 }
 
