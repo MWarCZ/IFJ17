@@ -20,225 +20,248 @@
 #include "error.h"
 #include "dstring.h"
 #include "symtable.h"
+#include "list.h"
 
 symtable_t *GlobalSymtable; // Globalni tabulka symbolu alias Tabulka fuknci
 
 // Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
   do {
-    TokenDestroy(tkn);
+    TokenDestroy( tkn );
     tkn = GetNextToken();
-  } while( !canGetEOL && tkn->type == TK_EOL );
+  } while( !canGetEOL &&  tkn->type == TK_EOL );
   return tkn;
 }
 
 int Syntax_Program() {
-  GlobalSymtable = SymtableInit();
+  SymtableInit(&GlobalSymtable);
 
   symtable_elem_t *gel = NULL;
-  TToken* tkn = NULL;
+  TToken *tmpToken = NULL;
+  TToken** tkn = &tmpToken;
+
   do {
     gel = NULL;
-    tkn = GetNextDestroyOldToken(tkn,0);
+    (*tkn) = GetNextDestroyOldToken( (*tkn),0);
 
-    if(tkn->type == TK_DECLARE) { /// declare
-      TokenDestroy(tkn);
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_FUNCTION ) { /// declare function
-        tkn = GetNextDestroyOldToken(tkn,1);
-        if( tkn->type == TK_ID ) { /// declare function xyz
+    if( (*tkn)->type == TK_DECLARE) { /// declare
+      
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_FUNCTION ) { /// declare function
+        (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+        if(  (*tkn)->type == TK_ID ) { /// declare function xyz
           // Najdi Funkci v tabulce symbolu pokud existuje
-          gel = SymtableFind(GlobalSymtable, tkn->string );
+          gel = SymtableFind(GlobalSymtable,  (*tkn)->string );
           if(gel == NULL) { // Pokud neexistuje tak vytvor
-            gel = AddElemGlobal(GlobalSymtable, tkn->string );
+            gel = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
             gel->elemType = SYM_TYPE_FUNCTION;
           }
           if( gel->declared ) { // Funkce jiz byla jednout deklarovana
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">declare function xyz - jiz existuje\n");
             return 0;
           }
           else { gel->declared = 1; }
 
-          tkn = GetNextDestroyOldToken(tkn,1);
-          if( tkn->type == TK_BRACKET_ROUND_LEFT ) { /// declare function xyz (
-            tkn = GetNextDestroyOldToken(tkn,1);
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+          if(  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) { /// declare function xyz (
+            (*tkn) = GetNextDestroyOldToken( (*tkn),1);
             if( Syntax_ListParam(tkn, gel, 1) ) { /// declare function xyz ( ListParam 
               
             }
             else {
               // ERR_SYN
               CallError(ERR_SYN);
+              fprintf(stderr, ">declare function xyz ( ListParam\n");
               return 0;
             }
 
-            if( tkn->type == TK_BRACKET_ROUND_RIGHT ) { /// declare function xyz ( ListParam )
-              tkn = GetNextDestroyOldToken(tkn,1);
+            if(  (*tkn)->type == TK_BRACKET_ROUND_RIGHT ) { /// declare function xyz ( ListParam )
+              (*tkn) = GetNextDestroyOldToken( (*tkn),1);
             }
             else {
               // ERR_SYN
               CallError(ERR_SYN);
+              fprintf(stderr, ">declare function xyz ( ListParam )\n");
               return 0;
             }
 
-            if( tkn->type == TK_AS ) { /// declare function xyz ( ListParam ) as 
-              tkn = GetNextDestroyOldToken(tkn,1);
+            if(  (*tkn)->type == TK_AS ) { /// declare function xyz ( ListParam ) as 
+              (*tkn) = GetNextDestroyOldToken( (*tkn),1);
             }
             else {
               // ERR_SYN
               CallError(ERR_SYN);
+              fprintf(stderr, ">declare function xyz ( ListParam ) as\n");
               return 0;
             }
 
-            if( tkn->type == TK_INTEGER ) { /// declare function xyz ( ListParam ) as DataType
+            if(  (*tkn)->type == TK_INTEGER ) { /// declare function xyz ( ListParam ) as DataType
               gel->dataType = SYM_DATATYPE_INT;
             }
-            else if( tkn->type == TK_DOUBLE ) {
+            else if(  (*tkn)->type == TK_DOUBLE ) {
               gel->dataType = SYM_DATATYPE_DOUBLE;
             }
-            else if( tkn->type == TK_STRING ) {
+            else if(  (*tkn)->type == TK_STRING ) {
               gel->dataType = SYM_DATATYPE_STRING;
             }
             else {
               // ERR_SYN
               CallError(ERR_SYN);
+              fprintf(stderr, ">declare function xyz ( ListParam ) as DataType\n");
               return 0;
             }
-            tkn = GetNextDestroyOldToken(tkn,1);
+            (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-            if( tkn->type == TK_EOL ) { /// declare function xyz ( ListParam ) as DataType EOL
+            if(  (*tkn)->type == TK_EOL ) { /// declare function xyz ( ListParam ) as DataType EOL
               continue;
             }
             else {
               // ERR_SYN
               CallError(ERR_SYN);
+              fprintf(stderr, ">declare function xyz ( ListParam ) as DataType EOL\n");
               return 0;
             }
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">declare function xyz (\n");
             return 0;
           }
         }
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">declare function xyz\n");
           return 0;
         }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">declare function\n");
         return 0;
       }
     }
     //
     //---------------------------------------------------------------------------
     //
-    else if( tkn->type == TK_FUNCTION ) { /// function
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_ID ) { /// function xyz
+    else if(  (*tkn)->type == TK_FUNCTION ) { /// function
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_ID ) { /// function xyz
         // Najdi Funkci v tabulce symbolu pokud existuje
-        gel = SymtableFind(GlobalSymtable, tkn->string );
+        gel = SymtableFind(GlobalSymtable,  (*tkn)->string );
         if(gel == NULL) { // Pokud neexistuje tak vytvor
-          gel = AddElemGlobal(GlobalSymtable, tkn->string );
+          gel = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
           gel->elemType = SYM_TYPE_FUNCTION;
         }
         if( gel->defined ) { // Funkce jiz byla jednout definovana
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">function xyz - Funkce jiz byla jednou definovana.\n");
           break;
         }
         else { gel->defined = 1; }
 
-        tkn = GetNextDestroyOldToken(tkn,1);
-        if( tkn->type == TK_BRACKET_ROUND_LEFT ) { /// function xyz (
-          tkn = GetNextDestroyOldToken(tkn,1);
+        (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+        if(  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) { /// function xyz (
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
           if( Syntax_ListParam(tkn, gel, 0) ) { /// function xyz ( ListParam 
             
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam\n");
             break;
           }
 
-          if( tkn->type == TK_BRACKET_ROUND_RIGHT ) { /// function xyz ( ListParam )
-            tkn = GetNextDestroyOldToken(tkn,1);
+          if(  (*tkn)->type == TK_BRACKET_ROUND_RIGHT ) { /// function xyz ( ListParam )
+            (*tkn) = GetNextDestroyOldToken( (*tkn),1);
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam )\n");
             break;
           }
 
-          if( tkn->type == TK_AS ) { /// function xyz ( ListParam ) as 
-            tkn = GetNextDestroyOldToken(tkn,1);
+          if(  (*tkn)->type == TK_AS ) { /// function xyz ( ListParam ) as 
+            (*tkn) = GetNextDestroyOldToken( (*tkn),1);
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as\n");
             break;
           }
 
-          if( tkn->type == TK_INTEGER ) { /// function xyz ( ListParam ) as DataType
+          if(  (*tkn)->type == TK_INTEGER ) { /// function xyz ( ListParam ) as DataType
             gel->dataType = SYM_DATATYPE_INT;
           }
-          else if( tkn->type == TK_DOUBLE ) {
+          else if(  (*tkn)->type == TK_DOUBLE ) {
             gel->dataType = SYM_DATATYPE_DOUBLE;
           }
-          else if( tkn->type == TK_STRING ) {
+          else if(  (*tkn)->type == TK_STRING ) {
             gel->dataType = SYM_DATATYPE_STRING;
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as DataType\n");
             break;
           }
-          tkn = GetNextDestroyOldToken(tkn,1);
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-          if( tkn->type == TK_EOL ) { /// function xyz ( ListParam ) as DataType EOL
+          if(  (*tkn)->type == TK_EOL ) { /// function xyz ( ListParam ) as DataType EOL
             // TODO - telo funkce
-            tkn = GetNextDestroyOldToken(tkn,0);
+            (*tkn) = GetNextDestroyOldToken( (*tkn),0);
             if( Syntax_FunctBody(tkn,gel) ) { /// function xyz ( ListParam ) as DataType EOL Funct_Body
             }
             else {
               // ERR_SYN
               CallError(ERR_SYN);
+              fprintf(stderr, ">function xyz ( ListParam ) as DataType EOL Funct_Body\n");
+              break;
             }
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as DataType EOL\n");
             break;
           }
-          tkn = GetNextDestroyOldToken(tkn,1);
+          //(*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-          if( tkn->type == TK_END ) { /// function xyz ( ListParam ) as DataType EOL Func_Body End
+          if(  (*tkn)->type == TK_END ) { /// function xyz ( ListParam ) as DataType EOL Func_Body End
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as DataType EOL Funct_Body end\n");
             break;
           }
-          tkn = GetNextDestroyOldToken(tkn,1);
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-          if( tkn->type == TK_FUNCTION ) { /// function xyz ( ListParam ) as DataType EOL Func_Body End Function
+          if(  (*tkn)->type == TK_FUNCTION ) { /// function xyz ( ListParam ) as DataType EOL Func_Body End Function
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as DataType EOL Funct_Body end function\n");
             break;
           }
-          tkn = GetNextDestroyOldToken(tkn,1);
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-          if( tkn->type == TK_EOL ) { /// function xyz ( ListParam ) as DataType EOL Func_Body End Function EOL
+          if(  (*tkn)->type == TK_EOL ) { /// function xyz ( ListParam ) as DataType EOL Func_Body End Function EOL
             continue;
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as DataType EOL Funct_Body end function EOL\n");
             break;
           }
 
@@ -247,12 +270,14 @@ int Syntax_Program() {
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">function xyz (\n");
           break;
         }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">function xyz\n");
         break;
       }
 
@@ -260,140 +285,151 @@ int Syntax_Program() {
     //
     //---------------------------------------------------------------------------
     //
-    else if(tkn->type == TK_SCOPE) { /// scope
+    else if( (*tkn)->type == TK_SCOPE) { /// scope
       // Token TK_ID s textem 'scope' se nemuze objevit
       // Najdi Funkci v tabulce symbolu pokud existuje - scope - pro jistotu
-      gel = SymtableFind(GlobalSymtable, tkn->string ); 
+      gel = SymtableFind(GlobalSymtable,  (*tkn)->string ); 
       if(gel == NULL) { // Pokud neexistuje tak vytvor
-        gel = AddElemGlobal(GlobalSymtable, tkn->string );
+        gel = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
         gel->elemType = SYM_TYPE_FUNCTION;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL ) { /// scope EOL
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL ) { /// scope EOL
         // TODO dodelat telo funkce
-        tkn = GetNextDestroyOldToken(tkn,0);
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0);
         if( Syntax_FunctBody(tkn,gel) ) { /// scope EOL Func_Body
         }
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">scope EOL Func_Body\n");
           break;
         }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">scope EOL\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_END ) { /// scope EOL Func_Body end
+      //(*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_END ) { /// scope EOL Func_Body end
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">scope EOL Func_Body end\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_SCOPE ) { /// scope EOL Func_Body end scope
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_SCOPE ) { /// scope EOL Func_Body end scope
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">scope EOL Func_Body end scope\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL || tkn->type == TK_EOF ) { /// scope EOL Func_Body end scope EOL/EOF
-        break;
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL ||  (*tkn)->type == TK_EOF ) { /// scope EOL Func_Body end scope EOL/EOF
+        //break;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">scope EOL Func_Body end scope EOL/EOF\n");
         break;
       }
 
     }
+    else if(  (*tkn)->type == TK_EOF) {
+      break;
+    }
     else {
       // ERR_SYN
       CallError(ERR_SYN);
+      fprintf(stderr, ">UNOWN\n");
       break;
     }
 
   } while(1);
   
-  TokenDestroy(tkn);
+  TokenDestroy( (*tkn) );
   SymtableFree(GlobalSymtable);
+
 
   return !ERR_EXIT_STATUS;
 } //- int Syntax_Program()
 
-int Syntax_ListParam(TToken *tkn, symtable_elem_t *gel, int isDeclareNow) {
+int Syntax_ListParam(TToken **tkn, symtable_elem_t *gel, int isDeclareNow) { // isDeclareNow: 1=declare function; 0=function
   symtable_elem_t *lel = NULL;
   int numParam = -1; // poradove cislo nacitaneho parametru - index
 
   while(1) {
-    if(tkn->type == TK_ID) { /// xyz
+    if( (*tkn)->type == TK_ID) { /// xyz
       numParam++;
       if( !isDeclareNow ) { // Jedna se o Definici a do lokalni tabulky symbolu se vkladaji promene
         // Najdi nazev v globalni tabulce symbolu pokud existuje
-        lel = SymtableFind( GlobalSymtable, tkn->string );
+        lel = SymtableFind( GlobalSymtable,  (*tkn)->string );
         if(lel != NULL) {
-          // SYN_ERR - Promnena se jmenuje stejne jako jiz existujici funkce
+          // ERR_SYN - Promnena se jmenuje stejne jako jiz existujici funkce
           CallError(ERR_SYN);
+          fprintf(stderr, ">xyz - Parametr se jmenuje stejne jako jiz existujici funkce.\n");
           return 0;
         }
         // Najdi Promnenou v lokalni tabulce symbolu pokud existuje
-        lel = SymtableFind( gel->local_symtable, tkn->string );
+        lel = SymtableFind( gel->local_symtable,  (*tkn)->string );
         if(lel == NULL) { // Pokud neexistuje tak vytvor
-          lel = AddElemGlobal( gel->local_symtable, tkn->string );
+          lel = AddElemGlobal( gel->local_symtable,  (*tkn)->string );
           lel->elemType = SYM_TYPE_PARAM;
         }
         else {
-          // SYN_ERR - Vice parametru se stejnym jmenem
+          // ERR_SYN - Vice parametru se stejnym jmenem
           CallError(ERR_SYN);
+          fprintf(stderr, ">xyz - Parametr se stejnym jmenem jiz existuje.\n");
           return 0;
         }
       }
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if(tkn->type == TK_AS) { /// xyz as
-        tkn = GetNextDestroyOldToken(tkn,1); /// xyz as DataType
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( (*tkn)->type == TK_AS) { /// xyz as
+        (*tkn) = GetNextDestroyOldToken( (*tkn),1); /// xyz as DataType
         // TODO - Kontrola listu parametru/typu
-        // if( list_DataType[numParam] == tkn->type ) else ERR
-        if( !isDeclareNow ) {
-          if( tkn->type == TK_INTEGER ) {
+        // if( list_DataType[numParam] ==  (*tkn)->type ) else ERR
+        if( !isDeclareNow ) { // definice funkce
+          if(  (*tkn)->type == TK_INTEGER ) {
             lel->dataType = SYM_DATATYPE_INT;
           } 
-          else if( tkn->type == TK_DOUBLE ) {
+          else if(  (*tkn)->type == TK_DOUBLE ) {
             lel->dataType = SYM_DATATYPE_DOUBLE;
           }
-          else if( tkn->type == TK_STRING ) {
+          else if(  (*tkn)->type == TK_STRING ) {
             lel->dataType = SYM_DATATYPE_STRING;
           }
           else {
-            // SYN_ERR
+            // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">xxx\n");
             return 0;
           }
 
-          tkn = GetNextDestroyOldToken(tkn,1);
-          if( tkn->type == TK_COMMA ) { // Pokud je dalsi token ',' tak znovu opakuj.
-            tkn = GetNextDestroyOldToken(tkn,1);
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+          if(  (*tkn)->type == TK_COMMA ) { // Pokud je dalsi token ',' tak znovu opakuj.
+            (*tkn) = GetNextDestroyOldToken( (*tkn),1);
             continue;
           }
           return 1; // Pokud je jiny token tak skonci
         }
-        else {
-          // ERR_SYN
-          CallError(ERR_SYN);
-          return 0;
-        }
+
+
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">xyz as\n");
         return 0;
       }
     }
@@ -405,7 +441,7 @@ int Syntax_ListParam(TToken *tkn, symtable_elem_t *gel, int isDeclareNow) {
 } //- int Syntax_ListParam
 
 
-int Syntax_FunctBody(TToken *tkn, symtable_elem_t *gel ) {
+int Syntax_FunctBody(TToken **tkn, symtable_elem_t *gel ) {
   if( Syntax_ListDefVar(tkn, gel) ) {
 
   }
@@ -417,98 +453,107 @@ int Syntax_FunctBody(TToken *tkn, symtable_elem_t *gel ) {
 } //- int Syntax_FunctBody
 
 
-int Syntax_ListDefVar(TToken *tkn, symtable_elem_t *gel ) {
+int Syntax_ListDefVar(TToken **tkn, symtable_elem_t *gel ) {
   symtable_elem_t *lel = NULL;
 
   while(1) {
     lel = NULL;
 
-    if( tkn->type == TK_DIM ) { /// dim
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_ID ) { /// dim ID
+    if( (*tkn)->type == TK_DIM ) { /// dim
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( (*tkn)->type == TK_ID ) { /// dim ID
         // Najdi nazev v globalni tabulce symbolu pokud existuje
-        lel = SymtableFind( GlobalSymtable, tkn->string );
+        lel = SymtableFind( GlobalSymtable, (*tkn)->string );
         if(lel != NULL) {
-          // SYN_ERR - Promnena se jmenuje stejne jako jiz existujici funkce
+          // ERR_SYN - Promnena se jmenuje stejne jako jiz existujici funkce
           CallError(ERR_SYN);
+          fprintf(stderr, ">dim ID - Stejne jmeno jako existujici funkce.\n");
           return 0;
         }
         // Najdi Promnenou v lokalni tabulce symbolu pokud existuje
-        lel = SymtableFind( gel->local_symtable, tkn->string );
+        lel = SymtableFind( gel->local_symtable, (*tkn)->string );
         if(lel == NULL) { // Pokud neexistuje tak vytvor
-          lel = AddElemGlobal( gel->local_symtable, tkn->string );
+          lel = AddElemGlobal( gel->local_symtable, (*tkn)->string );
           lel->elemType = SYM_TYPE_VAR;
         }
         else {
-          // SYN_ERR - Vice parametru/promnenych se stejnym jmenem
+          // ERR_SYN - Vice parametru/promnenych se stejnym jmenem
           CallError(ERR_SYN);
+          fprintf(stderr, ">dim ID - Promena se jmenuje stejne jako jina promena/parametr funkce.\n");
           break;
         }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">dim ID\n");
         break;
       }
     
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_AS ) { /// dim ID as
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_AS ) { /// dim ID as
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">dim ID as\n");
         break;
       }
     
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_INTEGER ) { /// dim ID as DataType
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( (*tkn)->type == TK_INTEGER ) { /// dim ID as DataType
         lel->dataType = SYM_DATATYPE_INT;
       }
-      else if( tkn->type == TK_DOUBLE ) { 
+      else if( (*tkn)->type == TK_DOUBLE ) { 
         lel->dataType = SYM_DATATYPE_DOUBLE;
       }
-      else if( tkn->type == TK_STRING ) { 
+      else if( (*tkn)->type == TK_STRING ) { 
         lel->dataType = SYM_DATATYPE_STRING;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">dim ID as DataType\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL ) { /// dim ID as DataType EOL
-        tkn = GetNextDestroyOldToken(tkn,0); // Konec nalezeneho proto dalsi token bude ignorovat prazdne radky
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( (*tkn)->type == TK_EOL ) { /// dim ID as DataType EOL
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0); // Konec nalezeneho proto dalsi token bude ignorovat prazdne radky
         continue;
       }
-      else if( tkn->type == TK_EQUAL ) { /// dim ID as DataType = 
-        if( /*Expresion()*/ false ) { /// dim ID as DataType = Expresion
+      else if( (*tkn)->type == TK_EQUAL ) { /// dim ID as DataType = 
+        (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+        if( Syntax_Expression(tkn, gel) ) { /// dim ID as DataType = Expresion
           // TODO - Expression - zpracovani vyrazu
         
         }
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">dim ID as DataType = Expression\n");
           break;
         }
 
-        tkn = GetNextDestroyOldToken(tkn,1);
-        if( tkn->type == TK_EOL ) { /// dim ID as DataType = Expresion EOL
-          tkn = GetNextDestroyOldToken(tkn,0); // Konec nalezeneho proto dalsi token bude ignorovat prazdne radky
+        //(*tkn) = GetNextDestroyOldToken( (*tkn),1);
+        if( (*tkn)->type == TK_EOL ) { /// dim ID as DataType = Expresion EOL
+          (*tkn) = GetNextDestroyOldToken( (*tkn),0); // Konec nalezeneho proto dalsi token bude ignorovat prazdne radky
           continue;
         }
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">dim ID as DataType = Expression EOL\n");
           break;
         }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">dim ID as DataType =/EOL\n");
         break;
       }
-    } //- if( tkn->type == TK_DIM ) 
+    } //- if(  (*tkn)->type == TK_DIM ) 
     else {
       /// Prazdno - bez definic promenych
       break;
@@ -520,210 +565,241 @@ int Syntax_ListDefVar(TToken *tkn, symtable_elem_t *gel ) {
   return !ERR_EXIT_STATUS;
 } //- int Syntax_ListDefVar
 
-int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel ) {
+int Syntax_ListCommand(TToken **tkn, symtable_elem_t *gel ) {
   symtable_elem_t *lel = NULL;
 
   while(1) {
     lel = NULL;
 
-    if( tkn->type == TK_INPUT ) { /// input
-      tkn = GetNextDestroyOldToken(tkn,1);
+    if( (*tkn)->type == TK_INPUT ) { /// input
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-      if( tkn->type == TK_ID ) { /// input ID
-
+      if( (*tkn)->type == TK_ID ) { /// input ID
+        lel = SymtableFind( gel->local_symtable, (*tkn)->string );
+        if(lel == NULL) {
+          // ERR_SYN
+          CallError(ERR_SYN);
+          fprintf(stderr, ">input ID - Promena ID neexistuje\n");
+          break;
+        }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">input ID\n");
         break;
       }
-      tkn = GetNextDestroyOldToken(tkn,1);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-      if( tkn->type == TK_EOF ) { /// input ID EOF
-        tkn = GetNextDestroyOldToken(tkn,0);
+      if(  (*tkn)->type == TK_EOL ) { /// input ID EOL
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0);
         continue;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">input ID EOL\n");
         break;
       }
 
-    } //- if( tkn->type == TK_INPUT )
+    } //- if(  (*tkn)->type == TK_INPUT )
     //
     //----------------------------------------------------------
     //
-    else if( tkn->type == TK_PRINT ) { /// print
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( ListExpression() ) { /// print ListExpression
-        // TODO - ListExpression - Expresion; Expresion;
+    else if(  (*tkn)->type == TK_PRINT ) { /// print
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( Syntax_ListExpression(tkn, gel) ) { /// print ListExpression
+        
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">print ListExpression\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL ) { /// print ListExpression EOL
-        tkn = GetNextDestroyOldToken(tkn,0);
+      //(*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL ) { /// print ListExpression EOL
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0);
         continue;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">print ListExpression EOL\n");
         break;
       }
 
-    } //- else if( tkn->type == TK_PRINT )
+    } //- else if(  (*tkn)->type == TK_PRINT )
     //
     //----------------------------------------------------------
     //
-    else if( tkn->type == TK_ID ) { /// ID
+    else if(  (*tkn)->type == TK_ID ) { /// ID
       // Najdi nazev v globalni tabulce symbolu pokud existuje
-      lel = SymtableFind( GlobalSymtable, tkn->string );
+      lel = SymtableFind( GlobalSymtable,  (*tkn)->string );
       if(lel != NULL) { 
         // ERR_SYN - ID je nazev funkce - Do funkce nelze priradit hodnotu.
         CallError(ERR_SYN);
+        fprintf(stderr, ">ID - ID je nazev funkce. Do funkce nelze priradit hodnotu.\n");
+        break;
+      }
+      // Najdi nazev v lokalni tabulce symbolu pokud existuje
+      lel = SymtableFind( gel->local_symtable,  (*tkn)->string );
+      if(lel == NULL) { 
+        // ERR_SYN - Promena s nazvem ID neexistuje
+        CallError(ERR_SYN);
+        fprintf(stderr, ">ID - ID neni nazev existujici promene.\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EQUAL ) { /// ID = 
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EQUAL ) { /// ID = 
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">ID =\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_ID ) {
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_ID ) {
         // Najdi nazev v globalni tabulce symbolu pokud existuje
-        lel = SymtableFind( GlobalSymtable, tkn->string );
+        lel = SymtableFind( GlobalSymtable,  (*tkn)->string );
         if(lel != NULL) { /// ID = ID
           // ID je funkce
-          tkn = GetNextDestroyOldToken(tkn,1);
-          if( tkn->type == TK_BRACKET_ROUND_LEFT ) { /// ID = ID (
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+          if(  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) { /// ID = ID (
 
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">ID = ID (\n");
             break;
           }
 
-          if( ListInParam() ) { /// ID = ID ( ListInParam
+          if( /*ListInParam()*/ false ) { /// ID = ID ( ListInParam
             // TODO - ListInParam
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">ID = ID ( ListInParam\n");
             break;
           }
 
-          tkn = GetNextDestroyOldToken(tkn,1);
-          if( tkn->type == TK_BRACKET_ROUND_LEFT ) { /// ID = ID ( ListParam )
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+          if(  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) { /// ID = ID ( ListInParam )
 
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">ID = ID ( ListInParam )\n");
             break;
           }
 
-          tkn = GetNextDestroyOldToken(tkn,1);
-          if( tkn->type == TK_EOL ) { /// ID = ID ( ListParam ) EOL
-            tkn = GetNextDestroyOldToken(tkn,0);
+          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+          if(  (*tkn)->type == TK_EOL ) { /// ID = ID ( ListInParam ) EOL
+            (*tkn) = GetNextDestroyOldToken( (*tkn),0);
             continue;
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">ID = ID ( ListInParam ) EOL\n");
             break;
           }
         }
         else {
-          if ( Expression() ) { /// ID = Expression
+          if ( Syntax_Expression(tkn, gel) ) { /// ID = Expression
             // TODO - Expression
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">ID = Expression1\n");
             break;
           }
 
-          //tkn = GetNextDestroyOldToken(tkn,1); // Mel bych dostat token z Expression()
-          if( tkn->type == TK_EOL ) { /// ID = Expression EOL
-            tkn = GetNextDestroyOldToken(tkn,0);
+          //(*tkn) = GetNextDestroyOldToken( (*tkn),1); // Mel bych dostat token z Expression()
+          if(  (*tkn)->type == TK_EOL ) { /// ID = Expression EOL
+            (*tkn) = GetNextDestroyOldToken( (*tkn),0);
             continue;
           }
           else {
             // ERR_SYN
             CallError(ERR_SYN);
+            fprintf(stderr, ">ID = Expression1 EOL\n");
             break;
           }
         }
-      }
-      else if( Expression() ) {
-        if ( Expression() ) { /// ID = Expression
+      } //- else if(  (*tkn)->type == TK_ID )
+      else if(  (*tkn)->type == TK_NUM_INTEGER ||  (*tkn)->type == TK_NUM_DOUBLE ||  (*tkn)->type == TK_NUM_STRING ||  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
+        if ( Syntax_Expression(tkn, gel) ) { /// ID = Expression
           // TODO - Expression
         }
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">ID = Expression\n");
           break;
         }
 
-        if( tkn->type == TK_EOL ) { /// ID = Expression EOL
-          tkn = GetNextDestroyOldToken(tkn,0);
+        if(  (*tkn)->type == TK_EOL ) { /// ID = Expression EOL
+          (*tkn) = GetNextDestroyOldToken( (*tkn),0);
           continue;
         }
         else {
           // ERR_SYN
           CallError(ERR_SYN);
+          fprintf(stderr, ">ID = Expression EOL\n");
           break;
         }
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">ID = - bylo ocekavano ID funkce nebo Vyraz\n");
         break;
       }
 
-    } //- else if( tkn->type == TK_ID )
+    } 
     //
     //----------------------------------------------------------
     //
-    else if( tkn->type == TK_RETURN ) { /// return
-      tkn = GetNextDestroyOldToken(tkn,1);
+    else if(  (*tkn)->type == TK_RETURN ) { /// return
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-      if ( Expression() ) { /// return Expression
+      if ( Syntax_Expression(tkn, gel) ) { /// return Expression
         // TODO - Expression
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">return Expression\n");
         break;
       }
 
-      if( tkn->type == TK_EOL ) { /// return Expression EOL
-        tkn = GetNextDestroyOldToken(tkn,0);
+      if(  (*tkn)->type == TK_EOL ) { /// return Expression EOL
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0);
         continue;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">return Expression EOL\n");
         break;
       }
 
-    } //- else if( tkn->type == TK_RETURN ) 
+    } //- else if(  (*tkn)->type == TK_RETURN ) 
     //
     //----------------------------------------------------------
     //
-    else if( tkn->type == TK_IF ) { /// if
-      tkn = GetNextDestroyOldToken(tkn,1);
+    else if(  (*tkn)->type == TK_IF ) { /// if
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
       if( Syntax_Condition(tkn, gel) ) { /// if Assignment
 
@@ -731,29 +807,32 @@ int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel ) {
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment\n");
         break;
       }
 
-      if( tkn->type == TK_THEN ) { /// if Assignment then
-        tkn = GetNextDestroyOldToken(tkn,0);
-        continue;
+      if(  (*tkn)->type == TK_THEN ) { /// if Assignment then
+        // (*tkn) = GetNextDestroyOldToken( (*tkn),0);
+        // continue;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL ) { /// if Assignment then EOL
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL ) { /// if Assignment then EOL
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,0);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),0);
       // TODO - ListCommand
       if( Syntax_ListCommand(tkn, gel ) ) { /// if Assignment then EOL ListCommand
 
@@ -761,29 +840,32 @@ int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel ) {
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand\n");
         break;
       }
 
-      if( tkn->type == TK_ELSE) { /// if Assignment then EOL ListCommand else
+      if(  (*tkn)->type == TK_ELSE) { /// if Assignment then EOL ListCommand else
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand else\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL) { /// if Assignment then EOL ListCommand else EOL
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL) { /// if Assignment then EOL ListCommand else EOL
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand else EOL\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,0);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),0);
       // TODO - ListCommand
       if( Syntax_ListCommand(tkn, gel ) ) { /// if Assignment then EOL ListCommand else EOL ListCommand
 
@@ -791,74 +873,81 @@ int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel ) {
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand else EOL ListCommand\n");
         break;
       }
 
-      if( tkn->type == TK_END) { /// if Assignment then EOL ListCommand else EOL ListCommand end
+      if(  (*tkn)->type == TK_END) { /// if Assignment then EOL ListCommand else EOL ListCommand end
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand else EOL ListCommand end\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_IF) { /// if Assignment then EOL ListCommand else EOL ListCommand end if
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_IF) { /// if Assignment then EOL ListCommand else EOL ListCommand end if
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand else EOL ListCommand end if\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL) { /// if Assignment then EOL ListCommand else EOL ListCommand end if EOL
-        tkn = GetNextDestroyOldToken(tkn,0);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL) { /// if Assignment then EOL ListCommand else EOL ListCommand end if EOL
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0);
         continue;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">if Assignment then EOL ListCommand else EOL ListCommand end if EOL\n");
         break;
       }
 
-    } //- else if( tkn->type == TK_IF )
+    } //- else if(  (*tkn)->type == TK_IF )
     //
     //----------------------------------------------------------
     //
-    else if( tkn->type == TK_DO ) { /// do
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_WHILE) { /// do while
+    else if(  (*tkn)->type == TK_DO ) { /// do
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_WHILE) { /// do while
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">do while\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
       if( Syntax_Condition(tkn, gel) ) { /// do while Assignment
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">do while Assignment\n");
         break;
       }
 
-      if( tkn->type == TK_EOL) { /// do while Assignment EOL
+      if(  (*tkn)->type == TK_EOL) { /// do while Assignment EOL
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">do while Assignment EOL\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,0);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),0);
       // TODO - ListCommand
       if( Syntax_ListCommand(tkn, gel ) ) { /// do while Assignment EOL ListCommand
 
@@ -866,30 +955,33 @@ int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel ) {
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">do while Assignment EOL ListCommand\n");
         break;
       }
 
-      if( tkn->type == TK_EOL) { /// do while Assignment EOL ListCommand loop
+      if(  (*tkn)->type == TK_LOOP) { /// do while Assignment EOL ListCommand loop
 
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">do while Assignment EOL ListCommand loop\n");
         break;
       }
 
-      tkn = GetNextDestroyOldToken(tkn,1);
-      if( tkn->type == TK_EOL) { /// do while Assignment EOL ListCommand loop EOL
-        tkn = GetNextDestroyOldToken(tkn,0);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if(  (*tkn)->type == TK_EOL) { /// do while Assignment EOL ListCommand loop EOL
+        (*tkn) = GetNextDestroyOldToken( (*tkn),0);
         continue;
       }
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">do while Assignment EOL ListCommand loop EOL\n");
         break;
       }
 
-    } //- else if( tkn->type == TK_DO )
+    } //- else if(  (*tkn)->type == TK_DO )
     //
     //----------------------------------------------------------
     //
@@ -904,51 +996,57 @@ int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel ) {
 } //- int Syntax_ListCommand
 
 
-int Syntax_Condition(TToken *tkn, symtable_elem_t *gel ) {
-  if ( Expression() ) { /// if Expression
+int Syntax_Condition(TToken **tkn, symtable_elem_t *gel ) {
+  (void)gel; // unused warning
+  if ( Syntax_Expression(tkn, gel) ) { /// Expression
     // TODO - Expression
     // TODO - < > <> = >= <=
-    if( Syntax_RelationalOperator(tkn, gel) ) {
+    if( Syntax_RelationalOperator(tkn, gel) ) { /// Expression RO
 
-      tkn = GetNextDestroyOldToken(tkn,1);
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
-      if ( Expression() ) { /// if Expression RO Expression
+      if ( Syntax_Expression(tkn, gel) ) { /// Expression RO Expression
         // TODO - Expression
       } 
       else {
         // ERR_SYN
         CallError(ERR_SYN);
+        fprintf(stderr, ">Expression RO Expression\n");
       }
     } 
     else {
       // ERR_SYN
       CallError(ERR_SYN);
+      fprintf(stderr, ">Expression RO\n");
     }
   }
   else {
         // ERR_SYN
     CallError(ERR_SYN);
+    fprintf(stderr, ">Expression\n");
   }
 
   return !ERR_EXIT_STATUS;
 } //- int Syntax_Condition
 
 
-int Syntax_RelationalOperator(TToken *tkn, symtable_elem_t *gel ) {
-  if( tkn->type == TK_EQUAL ) {
+int Syntax_RelationalOperator(TToken **tkn, symtable_elem_t *gel ) {
+  (void)gel; // unused parametr
+  if(  (*tkn)->type == TK_EQUAL ) {
   }
-  else if( tkn->type == TK_NOT_EQUAL ) {
+  else if(  (*tkn)->type == TK_NOT_EQUAL ) {
   }
-  else if( tkn->type == TK_GREATER ) {
+  else if(  (*tkn)->type == TK_GREATER ) {
   }
-  else if( tkn->type == TK_GREATER_EQUAL ) {
+  else if(  (*tkn)->type == TK_GREATER_EQUAL ) {
   }
-  else if( tkn->type == TK_LESS ) {
+  else if(  (*tkn)->type == TK_LESS ) {
   }
-  else if( tkn->type == TK_LESS_EQUAL ) {
+  else if(  (*tkn)->type == TK_LESS_EQUAL ) {
   }
   else {
     CallError(ERR_SYN);
+    fprintf(stderr, ">RO\n");
   }
   return !ERR_EXIT_STATUS;
 } //- int Syntax_RelationalOperator
@@ -1029,82 +1127,117 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
         default:
           return 0;
       }
+    default:
+      break;
   }
   return 0;
 }
 
-int Syntax_Expression( TToken *tkn, symtable_elem_t *gel )  {
+int CanBeTokenInExpression(TTokenType type) {
+  switch(type) {
+    case TK_ID:
+    case TK_NUM_INTEGER:
+    case TK_NUM_DOUBLE:
+    case TK_BRACKET_ROUND_RIGHT:
+    case TK_BRACKET_ROUND_LEFT:
+    case TK_PLUS:
+    case TK_MINUS:
+    case TK_MUL:
+    case TK_DIV:
+    case TK_MOD:
+    case TK_DIV_INT:
+      return 1;
+      break;
+    default:
+      return 0;
+      break;
+  }
+
+}
+
+int Syntax_Expression( TToken **tkn, symtable_elem_t *gel )  {
   TList *StackOperator; // Stack Tokenu
   TList *ListPostFix; // List Tokenu
   StackOperator = ListInit();
   ListPostFix = ListInit();
+  int genCode = 1; // generovani kodu povoleno
+
   if(StackOperator == NULL || ListPostFix == NULL) {
     // ERR_INTERNAL
+    CallError(ERR_INTERNAL);   
     return 0;
   }
 
-  TListData data;
   symtable_elem_t *lel = NULL;
   TTokenType lastToken = TK_BRACKET_ROUND_LEFT;
 
   do {
     lel = NULL;
 
-    if( !CanBeTokenAfterToken(lastToken, tkn->type) ) {
-      // ERR_SYN - nespravne poradi vyrazu napr i+-9
-      break;
+    if( CanBeTokenInExpression( (*tkn)->type ) && !CanBeTokenAfterToken( (*tkn)->type, lastToken ) ) {
+      // neocekavany token vyrazu
+      genCode = 0; // zakazano generovani kodu, ale neukoncuje se s chybou
+      fprintf(stderr, ">>>genCode = 0\n");// DEBUG
+      break; 
     }
-    lastToken = tkn->type;
+    lastToken =  (*tkn)->type;
 
-    if( tkn->type == TK_ID ) {
-      if( ( lel = SymtableFind( gel->local_symtable, tkn->string ) ) == NULL ) {
+    if(  (*tkn)->type == TK_ID ) {
+      if( ( lel = SymtableFind( gel->local_symtable,  (*tkn)->string ) ) == NULL ) {
         // ERR_SYN - Promena neexistuje
+        CallError(ERR_SYN);
+        fprintf(stderr, ">Expression: Promena/Parametr ID neexistuje.\n");
         break;
       }
       else {
         TListData data;
-        data.token = tkn;
+        data.pointer = (*tkn);
         if( !ListPushBack(ListPostFix, data) ) {
           // ERR_INTERNAL
+          CallError(ERR_INTERNAL);
           break;
         }
       }
     }
-    else if( tkn->type == TK_NUM_INTEGER || tkn->type == TK_NUM_DOUBLE ) {
+    else if(  (*tkn)->type == TK_NUM_INTEGER ||  (*tkn)->type == TK_NUM_DOUBLE ) {
       TListData data;
-      data.token = tkn;
+      data.pointer = (*tkn);
       if( !ListPushBack(ListPostFix, data) ) {
         // ERR_INTERNAL
+        CallError(ERR_INTERNAL);
         break;
       }
     }
-    else if( tkn->type == TK_BRACKET_ROUND_LEFT ) {
+    else if(  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
       TListData data;
-      data.token = tkn;
+      data.pointer = (*tkn);
       if( !ListPush(StackOperator, data) ) {
         // ERR_INTERNAL
+        CallError(ERR_INTERNAL);
         break;
       }
     }
-    else if( tkn->type == TK_PLUS || tkn->type == TK_MINUS || tkn->type == TK_MUL || tkn->type == TK_DIV || tkn->type == TK_DIV_INT || tkn->type == TK_MOD ) {
+    else if(  (*tkn)->type == TK_PLUS ||  (*tkn)->type == TK_MINUS ||  (*tkn)->type == TK_MUL ||  (*tkn)->type == TK_DIV ||  (*tkn)->type == TK_DIV_INT ||  (*tkn)->type == TK_MOD ) {
       // Podle priority operatoru zpracuj operatory
       TListData data;
-      while( ListFront(StackOperator, &data) && CanBeOperatorPush(tkn->type, data->token->type ) ) {
+      while( ListFront(StackOperator, &data) && !CanBeOperatorPush( (*tkn)->type, ( (TToken*)data.pointer)->type ) ) {
         ListPushBack(ListPostFix, data);
         ListPop(StackOperator, &data);
       }//- while
-      data->token = tkn;
+      data.pointer = (*tkn);
       ListPush(StackOperator, data);
     }
-    else if( tkn->type == TK_BRACKET_ROUND_RIGHT ) {
+    else if(  (*tkn)->type == TK_BRACKET_ROUND_RIGHT ) {
       TListData data;
       while(1) {
         if( !ListPop(StackOperator, &data) ) {
           // Pokud zasobnik op Neobsahuje '(' 
           // ERR_SYN
+          CallError(ERR_SYN);
+          fprintf(stderr, ">Expression: Vyraz obsahuje prebytecnou zavorku ')'\n");
           break;
         }
-        else if( data->token->type == TK_BRACKET_ROUND_LEFT ) {
+        else if( ((TToken*)data.pointer)->type == TK_BRACKET_ROUND_LEFT ) {
           break;
         }
         else {
@@ -1114,9 +1247,12 @@ int Syntax_Expression( TToken *tkn, symtable_elem_t *gel )  {
       }//-while
     }
     else {
+      TListData data;
       while( ListPop(StackOperator, &data) ) {
-        if( data->token->type == TK_BRACKET_ROUND_RIGHT ) {
+        if( ((TToken*)data.pointer)->type == TK_BRACKET_ROUND_LEFT ) {
           // ERR_SYN
+          CallError(ERR_SYN);
+          fprintf(stderr, ">Expression: Neocekavana zavorka '('.\n");
           break;
         }
         else {
@@ -1126,24 +1262,39 @@ int Syntax_Expression( TToken *tkn, symtable_elem_t *gel )  {
       break; // Uspesny konec
     }
 
-    tkn = GetNextToken(); // Jen novy token ale stary neuvolnovat nebot je v ListPostFix nebo v StackOperator
+    (*tkn) = GetNextToken(); // Jen novy token ale stary neuvolnovat nebot je v ListPostFix nebo v StackOperator
   } while(!ERR_EXIT_STATUS);
 
 
+  if( ListEmpty(ListPostFix) ) { // Pokud je vystupni Vyraz prazdny, tak neexistoval
+    CallError(ERR_SYN);
+    fprintf(stderr, ">Expression: Nebyl zadan vyraz.\n");
+  }
+  if( !ListEmpty(StackOperator) ) {
+    CallError(ERR_SYN);
+    fprintf(stderr, ">Expression: Nespravny vyraz zkontrolujte pocet operandu a operatoru.\n");
+  }
+
   // ListPostFix obsahuje vyraz v posix podobe ktery je potreba vygenerovat
-  if(!ERR_EXIT_STATUS) {
+  if(!ERR_EXIT_STATUS && genCode) {
     // TODO 
     // GENERATOR
   }
 
+  TListData data;
 
   // Uvolneni tokenu
+  fprintf(stderr, ">>>ListPostFix\n");// DEBUG
   while( ListPop(ListPostFix, &data) ) {
-    TokenDestroy(data->token);
+    PrintToken( ((TToken*)data.pointer) );// DEBUG
+    TokenDestroy( ((TToken*)data.pointer) );
   }
+  fprintf(stderr, ">>>StackOperator\n");// DEBUG
   while( ListPop(StackOperator, &data) ) {
-    TokenDestroy(data->token);
+    PrintToken( ((TToken*)data.pointer) );// DEBUG
+    TokenDestroy( ((TToken*)data.pointer) );
   }
+  fprintf(stderr, ">>>\n");// DEBUG
 
   ListDestroy(StackOperator);
   ListDestroy(ListPostFix);
@@ -1151,6 +1302,29 @@ int Syntax_Expression( TToken *tkn, symtable_elem_t *gel )  {
   return !ERR_EXIT_STATUS;
 } //- int Syntax_Expression
 
+
+int Syntax_ListExpression( TToken **tkn, symtable_elem_t *gel ) {
+
+  if( (*tkn)->type == TK_EOL ) { // Pokud je to konec radku tak skonci
+    (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+  }
+  else if( Syntax_Expression(tkn, gel) ) { /// Expression
+
+    if( (*tkn)->type == TK_SEMICOLON ) { /// Expresion ;
+
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+
+      Syntax_ListExpression(tkn, gel); /// Expression ; ListExpresion
+    }
+    else {
+      // ERR_SYN
+      CallError(ERR_SYN);
+      fprintf(stderr, ">ListExpression: Expression ;\n");
+    }
+  } 
+
+  return !ERR_EXIT_STATUS;
+} //- int Syntax_ListExpression
 
 
 #endif

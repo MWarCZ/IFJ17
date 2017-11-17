@@ -18,14 +18,15 @@
 
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL);
 int Syntax_Program();
-int Syntax_ListParam(TToken *tkn, symtable_elem_t *gel, int isDeclareNow);
-int Syntax_FunctBody(TToken *tkn, symtable_elem_t *gel );
-int Syntax_ListDefVar(TToken *tkn, symtable_elem_t *gel );
-int Syntax_ListCommand(TToken *tkn, symtable_elem_t *gel );
-int Syntax_Condition(TToken *tkn, symtable_elem_t *gel );
-int Syntax_RelationalOperator(TToken *tkn, symtable_elem_t *gel );
-int Syntax_Expression(TToken *tkn, symtable_elem_t *gel );
+int Syntax_ListParam(TToken **tkn, symtable_elem_t *gel, int isDeclareNow);
+int Syntax_FunctBody(TToken **tkn, symtable_elem_t *gel );
+int Syntax_ListDefVar(TToken **tkn, symtable_elem_t *gel );
+int Syntax_ListCommand(TToken **tkn, symtable_elem_t *gel );
+int Syntax_Condition(TToken **tkn, symtable_elem_t *gel );
+int Syntax_RelationalOperator(TToken **tkn, symtable_elem_t *gel );
+int Syntax_Expression(TToken **tkn, symtable_elem_t *gel );
 
+int Syntax_ListExpression( TToken **tkn, symtable_elem_t *gel );
 
 #endif
 
