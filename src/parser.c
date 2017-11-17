@@ -21,8 +21,9 @@
 #include "dstring.h"
 #include "symtable.h"
 
-symtable_t *GlobalSymtable; // Tabulka fuknci
+symtable_t *GlobalSymtable; // Globalni tabulka symbolu alias Tabulka fuknci
 
+// Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
   do {
     TokenDestroy(tkn);
@@ -322,7 +323,10 @@ int Syntax_Program() {
     }
 
   } while(1);
+  
   TokenDestroy(tkn);
+  SymtableFree(GlobalSymtable);
+
   return !ERR_EXIT_STATUS;
 } //- int Syntax_Program()
 
@@ -950,9 +954,204 @@ int Syntax_RelationalOperator(TToken *tkn, symtable_elem_t *gel ) {
 } //- int Syntax_RelationalOperator
 
 
-int Syntax_Expression(TToken *tkn, symtable_elem_t *gel ) {
 
+//----------------------------------------
+// Syntax_Expression
+// ---------------------------------------
+
+/*_____________
+  |       |   |
+  |   * / | 1 |
+  | \ mod | 2 |
+  |   + - | 3 |
+  |     ( | 4 |
+  |_______|___|
+ */
+int PriorityOperator(TTokenType type) {
+  switch(type) {
+    case TK_BRACKET_ROUND_LEFT:
+      return 4;
+    case TK_PLUS:
+    case TK_MINUS:
+      return 3;
+    case TK_MUL:
+    case TK_DIV:
+      return 1;
+    case TK_MOD:
+    case TK_DIV_INT:
+      return 2;
+    default:
+      return -1;
+  }
+}
+
+// Prevod vyrazu z infix na posfix - Muze byt operator vlozen na zasobnik operatoru?
+int CanBeOperatorPush(TTokenType operatorNow, TTokenType operatorOnStack ) {
+  if( operatorNow == TK_BRACKET_ROUND_LEFT ) 
+    return 1;
+  if( PriorityOperator(operatorNow) < PriorityOperator(operatorOnStack) ) 
+    return 1;
+  return 0;
+}
+
+// Prevod vyrazu z infix na posfix - Muze nasledovat token ... za tokenem ...?
+int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
+  switch(last) {
+    case TK_ID:
+    case TK_NUM_INTEGER:
+    case TK_NUM_DOUBLE:
+    case TK_BRACKET_ROUND_RIGHT:
+      switch(now) {
+        case TK_PLUS:
+        case TK_MINUS:
+        case TK_MUL:
+        case TK_DIV:
+        case TK_MOD:
+        case TK_DIV_INT:
+        case TK_BRACKET_ROUND_RIGHT:
+          return 1;
+        default:
+          return 0;
+      }
+    case TK_BRACKET_ROUND_LEFT:
+    case TK_PLUS:
+    case TK_MINUS:
+    case TK_MUL:
+    case TK_DIV:
+    case TK_MOD:
+    case TK_DIV_INT:
+      switch(now) {
+        case TK_ID:
+        case TK_NUM_INTEGER:
+        case TK_NUM_DOUBLE:
+        case TK_BRACKET_ROUND_LEFT:
+          return 1;
+        default:
+          return 0;
+      }
+  }
+  return 0;
+}
+
+int Syntax_Expression( TToken *tkn, symtable_elem_t *gel )  {
+  TList *StackOperator; // Stack Tokenu
+  TList *ListPostFix; // List Tokenu
+  StackOperator = ListInit();
+  ListPostFix = ListInit();
+  if(StackOperator == NULL || ListPostFix == NULL) {
+    // ERR_INTERNAL
+    return 0;
+  }
+
+  TListData data;
+  symtable_elem_t *lel = NULL;
+  TTokenType lastToken = TK_BRACKET_ROUND_LEFT;
+
+  do {
+    lel = NULL;
+
+    if( !CanBeTokenAfterToken(lastToken, tkn->type) ) {
+      // ERR_SYN - nespravne poradi vyrazu napr i+-9
+      break;
+    }
+    lastToken = tkn->type;
+
+    if( tkn->type == TK_ID ) {
+      if( ( lel = SymtableFind( gel->local_symtable, tkn->string ) ) == NULL ) {
+        // ERR_SYN - Promena neexistuje
+        break;
+      }
+      else {
+        TListData data;
+        data.token = tkn;
+        if( !ListPushBack(ListPostFix, data) ) {
+          // ERR_INTERNAL
+          break;
+        }
+      }
+    }
+    else if( tkn->type == TK_NUM_INTEGER || tkn->type == TK_NUM_DOUBLE ) {
+      TListData data;
+      data.token = tkn;
+      if( !ListPushBack(ListPostFix, data) ) {
+        // ERR_INTERNAL
+        break;
+      }
+    }
+    else if( tkn->type == TK_BRACKET_ROUND_LEFT ) {
+      TListData data;
+      data.token = tkn;
+      if( !ListPush(StackOperator, data) ) {
+        // ERR_INTERNAL
+        break;
+      }
+    }
+    else if( tkn->type == TK_PLUS || tkn->type == TK_MINUS || tkn->type == TK_MUL || tkn->type == TK_DIV || tkn->type == TK_DIV_INT || tkn->type == TK_MOD ) {
+      // Podle priority operatoru zpracuj operatory
+      TListData data;
+      while( ListFront(StackOperator, &data) && CanBeOperatorPush(tkn->type, data->token->type ) ) {
+        ListPushBack(ListPostFix, data);
+        ListPop(StackOperator, &data);
+      }//- while
+      data->token = tkn;
+      ListPush(StackOperator, data);
+    }
+    else if( tkn->type == TK_BRACKET_ROUND_RIGHT ) {
+      TListData data;
+      while(1) {
+        if( !ListPop(StackOperator, &data) ) {
+          // Pokud zasobnik op Neobsahuje '(' 
+          // ERR_SYN
+          break;
+        }
+        else if( data->token->type == TK_BRACKET_ROUND_LEFT ) {
+          break;
+        }
+        else {
+          ListPushBack(ListPostFix, data); // dokud nenajde '(' tak operace sklada na vystupni retezec
+        }
+
+      }//-while
+    }
+    else {
+      while( ListPop(StackOperator, &data) ) {
+        if( data->token->type == TK_BRACKET_ROUND_RIGHT ) {
+          // ERR_SYN
+          break;
+        }
+        else {
+          ListPushBack(ListPostFix, data);
+        }
+      }//-while
+      break; // Uspesny konec
+    }
+
+    tkn = GetNextToken(); // Jen novy token ale stary neuvolnovat nebot je v ListPostFix nebo v StackOperator
+  } while(!ERR_EXIT_STATUS);
+
+
+  // ListPostFix obsahuje vyraz v posix podobe ktery je potreba vygenerovat
+  if(!ERR_EXIT_STATUS) {
+    // TODO 
+    // GENERATOR
+  }
+
+
+  // Uvolneni tokenu
+  while( ListPop(ListPostFix, &data) ) {
+    TokenDestroy(data->token);
+  }
+  while( ListPop(StackOperator, &data) ) {
+    TokenDestroy(data->token);
+  }
+
+  ListDestroy(StackOperator);
+  ListDestroy(ListPostFix);
+
+  return !ERR_EXIT_STATUS;
 } //- int Syntax_Expression
+
+
 
 #endif
 
