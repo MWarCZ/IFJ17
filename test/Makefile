@@ -15,11 +15,12 @@ CFLAGS=-std=c99 -g -I .
 
 TEST_FRAMEWORK_DIR=../test_framework/
 BUILD_DIR=../build_test/
+SOURCE_OBJECTS_DIR=../build/
 SOURCE=$(wildcard *.test.c)
 OBJECTS:=$(SOURCE:.c=.o)
 OBJECTS:=$(addprefix $(BUILD_DIR),$(OBJECTS))
 
-APP_OBJECTS:=$(filter-out ../build/run ../build/main.o,$(wildcard ../build/*))
+APP_OBJECTS:=$(filter-out $(SOURCE_OBJECTS_DIR)main.o,$(wildcard $(SOURCE_OBJECTS_DIR)*.o))
 
 
 all: build
@@ -32,9 +33,7 @@ get-deps:
 		fi
 
 build-dir:
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-		mkdir $(BUILD_DIR); \
-	fi
+	mkdir -p $(BUILD_DIR);
 
 build: get-deps build-dir $(OBJECTS)
 
