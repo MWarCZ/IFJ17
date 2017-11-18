@@ -1450,6 +1450,9 @@ int Syntax_ListParam(TToken **tkn, symtable_elem_t *gel, int isDeclareNow) { // 
 
 int Syntax_ListInParam(TToken **tkn, symtable_elem_t *gel ) {
 
+  (void)tkn;
+  (void)gel;
+
   return !ERR_EXIT_STATUS;
 } //- int Syntax_ListInParam
 
