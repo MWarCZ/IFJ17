@@ -136,6 +136,10 @@ TToken* GetNextToken() {
       readToken->type = TK_BRACKET_ROUND_RIGHT;
       break;
     }
+    else if( readLastChar==',' ) {
+      readToken->type = TK_COMMA;
+      break;
+    }
     else if( CanBeIgnored(readLastChar) ) { ; }
     else {
       // ERR_LEX

@@ -17,7 +17,8 @@
 #include "symtable.h"
 
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL);
-int Syntax_Program();
+int SyntaxStartParse();
+int Syntax_Program(TToken **tkn);
 int Syntax_ListParam(TToken **tkn, symtable_elem_t *gel, int isDeclareNow);
 int Syntax_FunctBody(TToken **tkn, symtable_elem_t *gel );
 int Syntax_ListDefVar(TToken **tkn, symtable_elem_t *gel );
@@ -27,6 +28,7 @@ int Syntax_RelationalOperator(TToken **tkn, symtable_elem_t *gel );
 int Syntax_Expression(TToken **tkn, symtable_elem_t *gel );
 
 int Syntax_ListExpression( TToken **tkn, symtable_elem_t *gel );
+int Syntax_ListInParam(TToken **tkn, symtable_elem_t *gel );
 
 #endif
 

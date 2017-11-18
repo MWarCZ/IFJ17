@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "parser.h"
 #include "scanner.h"
 #include "token.h"
@@ -33,18 +34,43 @@ TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
   return tkn;
 }
 
-int Syntax_Program() {
+int SyntaxStartParse() {
   SymtableInit(&GlobalSymtable);
-
-  symtable_elem_t *gel = NULL;
   TToken *tmpToken = NULL;
   TToken** tkn = &tmpToken;
+
+  if( Syntax_Program(tkn) ) {
+  }
+  else {
+    // ERR_SYN
+    CallError(ERR_SYN);
+  }
+
+  TokenDestroy( (*tkn) );
+  SymtableFree(GlobalSymtable);
+
+  return !ERR_EXIT_STATUS;
+}
+
+int Syntax_Program(TToken **tkn) {
+
+  int existScope = 0; // Jiz byl scope vytvoren?
+  symtable_elem_t *gel = NULL;
 
   do {
     gel = NULL;
     (*tkn) = GetNextDestroyOldToken( (*tkn),0);
 
-    if( (*tkn)->type == TK_DECLARE) { /// declare
+    if(  (*tkn)->type == TK_EOF) {
+      break;
+    }
+    else if( existScope ) {
+      // ERR_SYN
+      CallError(ERR_SYN);
+      fprintf(stderr, ">Po funkci scope jiz neni mozne dale pokracovat.\n");
+      break;
+    }
+    else if( (*tkn)->type == TK_DECLARE) { /// declare
       
       (*tkn) = GetNextDestroyOldToken( (*tkn),1);
       if(  (*tkn)->type == TK_FUNCTION ) { /// declare function
@@ -97,14 +123,14 @@ int Syntax_Program() {
               return 0;
             }
 
-            if(  (*tkn)->type == TK_INTEGER ) { /// declare function xyz ( ListParam ) as DataType
-              gel->dataType = SYM_DATATYPE_INT;
-            }
-            else if(  (*tkn)->type == TK_DOUBLE ) {
-              gel->dataType = SYM_DATATYPE_DOUBLE;
-            }
-            else if(  (*tkn)->type == TK_STRING ) {
-              gel->dataType = SYM_DATATYPE_STRING;
+            unsigned int symDataType;
+            if( (*tkn)->type == TK_INTEGER || (*tkn)->type == TK_DOUBLE || (*tkn)->type == TK_STRING ) { /// declare function xyz ( ListParam ) as DataType
+              switch( (*tkn)->type ) {
+                case TK_INTEGER: symDataType = SYM_DATATYPE_INT; break;
+                case TK_DOUBLE: symDataType = SYM_DATATYPE_DOUBLE; break;
+                case TK_STRING: symDataType = SYM_DATATYPE_STRING; break;
+                default: break;
+              }
             }
             else {
               // ERR_SYN
@@ -112,6 +138,18 @@ int Syntax_Program() {
               fprintf(stderr, ">declare function xyz ( ListParam ) as DataType\n");
               return 0;
             }
+            if( gel->defined ) {
+              if (gel->dataType != symDataType) {
+                // ERR_SYN
+                CallError(ERR_SYN);
+                fprintf(stderr, ">Neschoduji se navratove datove typy definice a declarace funkce.\n");
+                return 0;
+              }
+            }
+            else {
+              gel->dataType = symDataType;
+            }
+
             (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
             if(  (*tkn)->type == TK_EOL ) { /// declare function xyz ( ListParam ) as DataType EOL
@@ -198,6 +236,7 @@ int Syntax_Program() {
             break;
           }
 
+          /*
           if(  (*tkn)->type == TK_INTEGER ) { /// function xyz ( ListParam ) as DataType
             gel->dataType = SYM_DATATYPE_INT;
           }
@@ -212,7 +251,36 @@ int Syntax_Program() {
             CallError(ERR_SYN);
             fprintf(stderr, ">function xyz ( ListParam ) as DataType\n");
             break;
+          }*/
+
+          unsigned int symDataType = 0;
+          if( (*tkn)->type == TK_INTEGER || (*tkn)->type == TK_DOUBLE || (*tkn)->type == TK_STRING ) { /// function xyz ( ListParam ) as DataType
+            switch( (*tkn)->type ) {
+              case TK_INTEGER: symDataType = SYM_DATATYPE_INT; break;
+              case TK_DOUBLE: symDataType = SYM_DATATYPE_DOUBLE; break;
+              case TK_STRING: symDataType = SYM_DATATYPE_STRING; break;
+              default: break;
+            }
           }
+          else {
+            // ERR_SYN
+            CallError(ERR_SYN);
+            fprintf(stderr, ">function xyz ( ListParam ) as DataType\n");
+            return 0;
+          }
+          if( gel->declared ) {
+            if (gel->dataType != symDataType) {
+              // ERR_SYN
+              CallError(ERR_SYN);
+              fprintf(stderr, ">Neschoduji se navratove datove typy definice a declarace funkce.\n");
+              return 0;
+            }
+          }
+          else {
+            gel->dataType = symDataType;
+          }
+            //------
+
           (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
           if(  (*tkn)->type == TK_EOL ) { /// function xyz ( ListParam ) as DataType EOL
@@ -286,12 +354,19 @@ int Syntax_Program() {
     //---------------------------------------------------------------------------
     //
     else if( (*tkn)->type == TK_SCOPE) { /// scope
+      existScope = 1;
       // Token TK_ID s textem 'scope' se nemuze objevit
       // Najdi Funkci v tabulce symbolu pokud existuje - scope - pro jistotu
       gel = SymtableFind(GlobalSymtable,  (*tkn)->string ); 
       if(gel == NULL) { // Pokud neexistuje tak vytvor
         gel = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
         gel->elemType = SYM_TYPE_FUNCTION;
+      }
+      else {
+        // ERR_SYN
+        CallError(ERR_SYN);
+        fprintf(stderr, ">Hlavni funkce scope jiz existuje.\n");
+        break;
       }
 
       (*tkn) = GetNextDestroyOldToken( (*tkn),1);
@@ -346,9 +421,6 @@ int Syntax_Program() {
       }
 
     }
-    else if(  (*tkn)->type == TK_EOF) {
-      break;
-    }
     else {
       // ERR_SYN
       CallError(ERR_SYN);
@@ -357,88 +429,10 @@ int Syntax_Program() {
     }
 
   } while(1);
-  
-  TokenDestroy( (*tkn) );
-  SymtableFree(GlobalSymtable);
 
 
-  return !ERR_EXIT_STATUS;
+  return !ERR_EXIT_STATUS && existScope;
 } //- int Syntax_Program()
-
-int Syntax_ListParam(TToken **tkn, symtable_elem_t *gel, int isDeclareNow) { // isDeclareNow: 1=declare function; 0=function
-  symtable_elem_t *lel = NULL;
-  int numParam = -1; // poradove cislo nacitaneho parametru - index
-
-  while(1) {
-    if( (*tkn)->type == TK_ID) { /// xyz
-      numParam++;
-      if( !isDeclareNow ) { // Jedna se o Definici a do lokalni tabulky symbolu se vkladaji promene
-        // Najdi nazev v globalni tabulce symbolu pokud existuje
-        lel = SymtableFind( GlobalSymtable,  (*tkn)->string );
-        if(lel != NULL) {
-          // ERR_SYN - Promnena se jmenuje stejne jako jiz existujici funkce
-          CallError(ERR_SYN);
-          fprintf(stderr, ">xyz - Parametr se jmenuje stejne jako jiz existujici funkce.\n");
-          return 0;
-        }
-        // Najdi Promnenou v lokalni tabulce symbolu pokud existuje
-        lel = SymtableFind( gel->local_symtable,  (*tkn)->string );
-        if(lel == NULL) { // Pokud neexistuje tak vytvor
-          lel = AddElemGlobal( gel->local_symtable,  (*tkn)->string );
-          lel->elemType = SYM_TYPE_PARAM;
-        }
-        else {
-          // ERR_SYN - Vice parametru se stejnym jmenem
-          CallError(ERR_SYN);
-          fprintf(stderr, ">xyz - Parametr se stejnym jmenem jiz existuje.\n");
-          return 0;
-        }
-      }
-      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
-      if( (*tkn)->type == TK_AS) { /// xyz as
-        (*tkn) = GetNextDestroyOldToken( (*tkn),1); /// xyz as DataType
-        // TODO - Kontrola listu parametru/typu
-        // if( list_DataType[numParam] ==  (*tkn)->type ) else ERR
-        if( !isDeclareNow ) { // definice funkce
-          if(  (*tkn)->type == TK_INTEGER ) {
-            lel->dataType = SYM_DATATYPE_INT;
-          } 
-          else if(  (*tkn)->type == TK_DOUBLE ) {
-            lel->dataType = SYM_DATATYPE_DOUBLE;
-          }
-          else if(  (*tkn)->type == TK_STRING ) {
-            lel->dataType = SYM_DATATYPE_STRING;
-          }
-          else {
-            // ERR_SYN
-            CallError(ERR_SYN);
-            fprintf(stderr, ">xxx\n");
-            return 0;
-          }
-
-          (*tkn) = GetNextDestroyOldToken( (*tkn),1);
-          if(  (*tkn)->type == TK_COMMA ) { // Pokud je dalsi token ',' tak znovu opakuj.
-            (*tkn) = GetNextDestroyOldToken( (*tkn),1);
-            continue;
-          }
-          return 1; // Pokud je jiny token tak skonci
-        }
-
-
-      }
-      else {
-        // ERR_SYN
-        CallError(ERR_SYN);
-        fprintf(stderr, ">xyz as\n");
-        return 0;
-      }
-    }
-    else { /// Prazdny list parametru
-      return 2;
-    }
-  } //- while(1) 
-
-} //- int Syntax_ListParam
 
 
 int Syntax_FunctBody(TToken **tkn, symtable_elem_t *gel ) {
@@ -771,6 +765,14 @@ int Syntax_ListCommand(TToken **tkn, symtable_elem_t *gel ) {
     //----------------------------------------------------------
     //
     else if(  (*tkn)->type == TK_RETURN ) { /// return
+
+      if ( strcmp("scope",gel->name)==0 ) { // telo scope nesmi obsahovat return
+        // ERR_SYN
+        CallError(ERR_SYN);
+        fprintf(stderr, ">return se nesmi vyskytovat v tele scope\n");
+        break;
+      }
+
       (*tkn) = GetNextDestroyOldToken( (*tkn),1);
 
       if ( Syntax_Expression(tkn, gel) ) { /// return Expression
@@ -1098,6 +1100,7 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
+    case TK_NUM_STRING:
     case TK_BRACKET_ROUND_RIGHT:
       switch(now) {
         case TK_PLUS:
@@ -1122,6 +1125,7 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
         case TK_ID:
         case TK_NUM_INTEGER:
         case TK_NUM_DOUBLE:
+        case TK_NUM_STRING:
         case TK_BRACKET_ROUND_LEFT:
           return 1;
         default:
@@ -1138,6 +1142,7 @@ int CanBeTokenInExpression(TTokenType type) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
+    case TK_NUM_STRING:
     case TK_BRACKET_ROUND_RIGHT:
     case TK_BRACKET_ROUND_LEFT:
     case TK_PLUS:
@@ -1199,7 +1204,7 @@ int Syntax_Expression( TToken **tkn, symtable_elem_t *gel )  {
         }
       }
     }
-    else if(  (*tkn)->type == TK_NUM_INTEGER ||  (*tkn)->type == TK_NUM_DOUBLE ) {
+    else if( (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
       TListData data;
       data.pointer = (*tkn);
       if( !ListPushBack(ListPostFix, data) ) {
@@ -1326,6 +1331,127 @@ int Syntax_ListExpression( TToken **tkn, symtable_elem_t *gel ) {
   return !ERR_EXIT_STATUS;
 } //- int Syntax_ListExpression
 
+//
+//------------------------------
+//
+
+
+
+int Syntax_ListParam(TToken **tkn, symtable_elem_t *gel, int isDeclareNow) { // isDeclareNow: 1=declare function; 0=function
+  symtable_elem_t *lel = NULL;
+
+  int existList = 0;
+  if( (existList = ( gel->listParam != NULL ) ) ) {
+    gel->listParam = ListInit();
+  }
+
+  int numParam = -1; // poradove cislo nacitaneho parametru - index
+  while(1) {
+
+    if( (*tkn)->type == TK_ID ) { /// ID
+      lel = SymtableFind(GlobalSymtable, (*tkn)->string );
+      if( lel != NULL ) { // parametr ma stejne jmeno jako existujici funkce
+        // ERR_SYN
+        CallError(ERR_SYN);
+        fprintf(stderr, ">ListParam: Parametr ma stejne jmeno jako funkce\n");
+        break;
+      }
+      numParam++;
+      TListData data;
+
+      if(existList) {
+        if ( !ListRemove(gel->listParam, numParam, &data) ) { // Ziskej prvek pokud existuje
+          // ERR_SYN - Nevhodny pocet parametru - rozna declarace a definice
+          CallError(ERR_SYN);
+          fprintf(stderr, ">ListParam: Nevhodny pocet parametru. Ruzne v declaraci a v definici.\n");
+          break;
+        }
+      }
+      else {
+        // Prvek neexistuje, tak vytvor
+        data.i = 0;
+        data.pointer = NULL;
+      }
+
+      if(!isDeclareNow) { // Jedna se o definici funkce - ukladame nazev parametru
+        lel = SymtableFind( gel->local_symtable , (*tkn)->string );
+        if( lel != NULL ) { // parametr ma stejne jmeno jako existujici parametr
+          // ERR_SYN
+          CallError(ERR_SYN);
+          fprintf(stderr, ">ListParam: Parametr ma stejne jmeno jako jiny parametr.\n");
+          break;
+        }
+        lel = AddElemGlobal( gel->local_symtable ,  (*tkn)->string );
+        lel->elemType = SYM_TYPE_PARAM;
+        data.pointer = lel->name;
+      }
+
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( (*tkn)->type == TK_AS ) { /// ID as
+      }
+      else {
+        // ERR_SYN
+        CallError(ERR_SYN);
+        fprintf(stderr, ">ListParam: ID as\n");
+        break;
+      }
+
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      int symDataType;
+      if( (*tkn)->type == TK_INTEGER || (*tkn)->type == TK_DOUBLE || (*tkn)->type == TK_STRING ) { /// ID as DataType 
+        switch( (*tkn)->type ) {
+          case TK_INTEGER: symDataType = SYM_DATATYPE_INT; break; 
+          case TK_DOUBLE: symDataType = SYM_DATATYPE_DOUBLE; break; 
+          case TK_STRING: symDataType = SYM_DATATYPE_STRING; break; 
+          default: break;
+        }
+      }
+      else {
+        // ERR_SYN
+        CallError(ERR_SYN);
+        fprintf(stderr, ">ListParam: ID as DataType\n");
+        break;
+      }
+
+      if(existList) {
+        // Pokud list i prvek existoval
+        if( data.i != symDataType ) {
+          // ERR_SYN - Parametr v declaraci a definici nejsou stejneho typu
+          CallError(ERR_SYN);
+          fprintf(stderr, ">ListParam: Parametry v declaraci a definici nejsou stejneho typu.\n");
+          break;
+        }
+      }
+      else {
+        // Pokud list neexistoval tak jen uloz
+        data.i = symDataType;
+        if(!isDeclareNow) { // Jedna se o definici funkce - ukladame nazev parametru
+          lel->dataType = symDataType;
+        }
+      }
+
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+      if( (*tkn)->type == TK_COMMA ) {
+        (*tkn) = GetNextDestroyOldToken( (*tkn),1);
+        continue;
+      }
+
+    }
+    else {
+      break;
+    }
+
+
+  }//- while(1)
+
+  return !ERR_EXIT_STATUS;
+} //- int Syntax_ListParam
+
+
+int Syntax_ListInParam(TToken **tkn, symtable_elem_t *gel ) {
+
+  return !ERR_EXIT_STATUS;
+} //- int Syntax_ListInParam
 
 #endif
 
