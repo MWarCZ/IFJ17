@@ -136,6 +136,10 @@ TToken* GetNextToken() {
       readToken->type = TK_BRACKET_ROUND_RIGHT;
       break;
     }
+    else if( readLastChar==',' ) {
+      readToken->type = TK_COMMA;
+      break;
+    }
     else if( CanBeIgnored(readLastChar) ) { ; }
     else {
       // ERR_LEX
@@ -149,6 +153,9 @@ TToken* GetNextToken() {
   //printf("%s\n",readString->string);
   StringDestroy(readString);
   Convert(readToken);
+
+  PrintToken(readToken);// DEBUG
+
   return readToken;
 }
 
