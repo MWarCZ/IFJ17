@@ -107,10 +107,12 @@ TToken* TokenInit() {
 }
 
 void TokenDestroy(TToken* tkn) {
-  if(tkn->string != NULL) {
-    free(tkn->string);
+  if(tkn != NULL) {
+    if(tkn->string != NULL) {
+      free(tkn->string);
+    }
+    free(tkn);
   }
-  free(tkn);
 }
 
 #endif

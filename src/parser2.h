@@ -46,7 +46,6 @@ int Syntaxx_Term(TToken **tkn);
 
 int Syntaxx_Expression(TToken **tkn);
 
-
 #endif
 
 // Soubor: src/parser2.h
