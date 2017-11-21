@@ -310,6 +310,9 @@ int Syntaxx_ListVarDef(TToken **tkn) {
       if( !Syntaxx_DataType(tkn) ) { 
         return 0;
       }
+      if( !Syntaxx_VarDefAssigment(tkn) ) {
+        return 0;
+      }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
@@ -331,6 +334,26 @@ int Syntaxx_ListVarDef(TToken **tkn) {
   }
   
 }
+
+int Syntaxx_VarDefAssigment(TToken **tkn) {
+  switch( (*tkn)->type ) {
+    case TK_EQUAL: /// =
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+      if( !Syntaxx_Expression(tkn) ) { // TK_EXPRESSION
+        return 0;
+      }
+      return 1;
+      break;
+    case TK_EOL:
+      return 1;
+      break;
+    default:
+      fprintf(stderr, "VarDefAssigment\n");
+      return 0;
+      break;
+  }
+}
+
 int Syntaxx_ListCommand(TToken **tkn) {
   switch( (*tkn)->type ) {
     case TK_ID:

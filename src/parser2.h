@@ -33,6 +33,7 @@ int Syntaxx_ScopeEnd(TToken **tkn);
 int Syntaxx_ScopeAfter(TToken **tkn);
 int Syntaxx_FunctionBody(TToken **tkn);
 int Syntaxx_ListVarDef(TToken **tkn);
+int Syntaxx_VarDefAssigment(TToken **tkn);
 int Syntaxx_ListCommand(TToken **tkn);
 int Syntaxx_Command(TToken **tkn);
 int Syntaxx_ListExpression(TToken **tkn);
