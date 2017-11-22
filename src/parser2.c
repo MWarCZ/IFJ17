@@ -505,38 +505,14 @@ int Syntaxx_ListExpression(TToken **tkn) {
 }
 int Syntaxx_Condition(TToken **tkn) {
   // Expression
-  if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
+  if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
     if( !Syntaxx_Expression(tkn) ) {
       return 0;
     } 
-    if( !Syntaxx_RO(tkn) ) {
-      return 0;
-    }
-    if( !Syntaxx_Expression(tkn) ) {
-      return 0;
-    }
     return 1;
   }
   fprintf(stderr, "Condition\n");
   return 0;
-  
-}
-int Syntaxx_RO(TToken **tkn) {
-  switch( (*tkn)->type ) {
-    case TK_EQUAL: /// =
-    case TK_LESS: /// <
-    case TK_GREATER: /// >
-    case TK_NOT_EQUAL: /// <>
-    case TK_LESS_EQUAL: /// <=
-    case TK_GREATER_EQUAL: /// >=
-      (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return 1;
-      break;
-    default:
-      fprintf(stderr, "RO\n");
-      return 0;
-      break;
-  }
   
 }
 int Syntaxx_Assignment(TToken **tkn) {
@@ -657,7 +633,7 @@ int Syntaxx_Term(TToken **tkn) {
 int PriorityOperator(TTokenType type) {
   switch(type) {
     case TK_BRACKET_ROUND_LEFT:
-      return 4;
+      return 5;
     case TK_PLUS:
     case TK_MINUS:
       return 3;
@@ -667,6 +643,13 @@ int PriorityOperator(TTokenType type) {
     case TK_MOD:
     case TK_DIV_INT:
       return 2;
+    case TK_LESS: 
+    case TK_LESS_EQUAL: 
+    case TK_GREATER: 
+    case TK_GREATER_EQUAL:
+    case TK_EQUAL: 
+    case TK_NOT_EQUAL: 
+      return 4; 
     default:
       return -1;
   }
@@ -697,6 +680,12 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
         case TK_MOD:
         case TK_DIV_INT:
         case TK_BRACKET_ROUND_RIGHT:
+        case TK_LESS: 
+        case TK_LESS_EQUAL: 
+        case TK_GREATER: 
+        case TK_GREATER_EQUAL:
+        case TK_EQUAL: 
+        case TK_NOT_EQUAL: 
           return 1;
         default:
           return 0;
@@ -708,6 +697,12 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
     case TK_DIV:
     case TK_MOD:
     case TK_DIV_INT:
+    case TK_LESS: 
+    case TK_LESS_EQUAL: 
+    case TK_GREATER: 
+    case TK_GREATER_EQUAL:
+    case TK_EQUAL: 
+    case TK_NOT_EQUAL:  
       switch(now) {
         case TK_ID:
         case TK_NUM_INTEGER:
@@ -794,7 +789,7 @@ int Syntaxx_Expression( TToken **tkn)  {
       data.pointer = (*tkn);
       ListPush(StackOperator, data);
     }
-    else if(  (*tkn)->type == TK_PLUS ||  (*tkn)->type == TK_MINUS ||  (*tkn)->type == TK_MUL ||  (*tkn)->type == TK_DIV ||  (*tkn)->type == TK_DIV_INT ||  (*tkn)->type == TK_MOD ) {
+    else if( (*tkn)->type == TK_PLUS || (*tkn)->type == TK_MINUS || (*tkn)->type == TK_MUL || (*tkn)->type == TK_DIV ||  (*tkn)->type == TK_DIV_INT ||  (*tkn)->type == TK_MOD || (*tkn)->type == TK_LESS || (*tkn)->type == TK_LESS_EQUAL || (*tkn)->type == TK_GREATER || (*tkn)->type == TK_GREATER_EQUAL || (*tkn)->type == TK_EQUAL || (*tkn)->type == TK_NOT_EQUAL ) {
       // Podle priority operatoru zpracuj operatory
       TListData data;
       while( ListFront(StackOperator, &data) && !CanBeOperatorPush( (*tkn)->type, ( (TToken*)data.pointer)->type ) ) {

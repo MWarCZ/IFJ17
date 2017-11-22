@@ -38,7 +38,6 @@ int Syntaxx_ListCommand(TToken **tkn);
 int Syntaxx_Command(TToken **tkn);
 int Syntaxx_ListExpression(TToken **tkn);
 int Syntaxx_Condition(TToken **tkn);
-int Syntaxx_RO(TToken **tkn);
 int Syntaxx_Assignment(TToken **tkn);
 int Syntaxx_ListInParam(TToken **tkn);
 int Syntaxx_InParam(TToken **tkn);
