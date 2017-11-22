@@ -51,6 +51,14 @@ void DestroyASTNodeSafely(TATSNode **node) {
   if( (*node) == NULL ) {
     return;
   }
+  if( (*node)->token1 != NULL ) {
+    TokenDestroy( (*node)->token1 );
+    (*node)->token1 = NULL;
+  }
+  if( (*node)->token2 != NULL ) {
+    TokenDestroy( (*node)->token2 );
+    (*node)->token2 = NULL;
+  }
   DestroyASTNodeSafely( &((*node)->node1) );
   DestroyASTNodeSafely( &((*node)->node2) );
   DestroyASTNodeSafely( &((*node)->node3) );

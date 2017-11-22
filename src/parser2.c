@@ -21,9 +21,10 @@
 #include "dstring.h"
 #include "symtable.h"
 #include "list.h"
+#include "ast.h"
 #include "parser2.h"
 
-symtable_t *GlobalSymtable; // Globalni tabulka symbolu alias Tabulka fuknci
+symtable_t *GlobalSymtable = NULL; // Globalni tabulka symbolu alias Tabulka fuknci
 
 // Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
@@ -40,10 +41,12 @@ int SyntaxStartParse() {
   TToken *tmpToken = NULL;
   TToken** tkn = &tmpToken;
 
+  TATSNode *rootAST = NULL; // AST
+
   //(*tkn) = GetNextToken();
   (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
 
-  if( Syntaxx_Program(tkn) ) {
+  if( Syntaxx_Program(tkn, &rootAST ) ) {
   }
   else {
     // ERR_SYN
@@ -51,19 +54,21 @@ int SyntaxStartParse() {
   }
 
   TokenDestroy( (*tkn) );
+  DestroyASTNodeSafely(&rootAST); // AST
   SymtableFree(GlobalSymtable);
   ClearScanner();
 
   return !ERR_EXIT_STATUS;
 }
 
-int Syntaxx_Program(TToken **tkn) {
+int Syntaxx_Program(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_Program); // AST
   switch( (*tkn)->type ) {
     case TK_DECLARE:
     case TK_FUNCTION:
     case TK_SCOPE:
     case TK_EOF:
-      return Syntaxx_ListDecDef(tkn) && Syntaxx_ScopeDef(tkn);
+      return Syntaxx_ListDecDef(tkn, &((*nodeAST)->node1) ) && Syntaxx_ScopeDef(tkn, &((*nodeAST)->node2)  );
       break;
     default:
       fprintf(stderr, "Program\n");
@@ -72,14 +77,17 @@ int Syntaxx_Program(TToken **tkn) {
   }
 }
 
-int Syntaxx_ListDecDef(TToken **tkn) {
+int Syntaxx_ListDecDef(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ListDecDef); // AST
   switch( (*tkn)->type ) {
     case TK_DECLARE: /// declare
+      //(*nodeAST)->token1 = (*tkn); // AST declare
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_FunctionHead(tkn) && Syntaxx_ListDecDef(tkn);
+      //(*tkn) = GetNextToken();
+      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1) ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node2)  );
       break;
     case TK_FUNCTION:
-      return Syntaxx_FunctionHead(tkn) && Syntaxx_FunctionBody(tkn) && Syntaxx_FunctionEnd(tkn) && Syntaxx_ListDecDef(tkn);
+      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1) ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2)  ) && Syntaxx_FunctionEnd(tkn, &((*nodeAST)->node3)  ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node4)  );
       break;
     case TK_SCOPE:
       return 1;
@@ -91,7 +99,8 @@ int Syntaxx_ListDecDef(TToken **tkn) {
   }
 }
 
-int Syntaxx_FunctionHead(TToken **tkn) {
+int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_FunctionHead); // AST
   switch( (*tkn)->type ) {
     case TK_FUNCTION: /// function
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -103,7 +112,7 @@ int Syntaxx_FunctionHead(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 ); 
-      if( !Syntaxx_ListParam(tkn) ) {
+      if( !Syntaxx_ListParam(tkn, &((*nodeAST)->node1) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_BRACKET_ROUND_RIGHT ) { /// )
@@ -114,7 +123,7 @@ int Syntaxx_FunctionHead(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_DataType(tkn) ) {
+      if( !Syntaxx_DataType(tkn, &((*nodeAST)->node2) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
@@ -130,10 +139,11 @@ int Syntaxx_FunctionHead(TToken **tkn) {
   }
   
 }
-int Syntaxx_ListParam(TToken **tkn) {
+int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ListParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
-      return Syntaxx_Param(tkn) && Syntaxx_NextParam(tkn);
+      return Syntaxx_Param(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2) );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -145,7 +155,8 @@ int Syntaxx_ListParam(TToken **tkn) {
   }
   
 }
-int Syntaxx_Param(TToken **tkn) {
+int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_Param); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -153,7 +164,7 @@ int Syntaxx_Param(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_DataType(tkn);
+      return Syntaxx_DataType(tkn, &((*nodeAST)->node1) );
       break;
     default:
       fprintf(stderr, "Param\n");
@@ -162,11 +173,12 @@ int Syntaxx_Param(TToken **tkn) {
   }
   
 }
-int Syntaxx_NextParam(TToken **tkn) {
+int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_NextParam); // AST
   switch( (*tkn)->type ) {
     case TK_COMMA: /// ,
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_Param(tkn) && Syntaxx_NextParam(tkn);
+      return Syntaxx_Param(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2) );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -178,7 +190,8 @@ int Syntaxx_NextParam(TToken **tkn) {
   }
   
 }
-int Syntaxx_DataType(TToken **tkn) {
+int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_DataType); // AST
   switch( (*tkn)->type ) {
     case TK_INTEGER: /// integer
     case TK_DOUBLE: /// double
@@ -193,7 +206,8 @@ int Syntaxx_DataType(TToken **tkn) {
   }
   
 }
-int Syntaxx_FunctionEnd(TToken **tkn) {
+int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_FunctionEnd); // AST
   switch( (*tkn)->type ) {
     case TK_END: /// end
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -215,10 +229,11 @@ int Syntaxx_FunctionEnd(TToken **tkn) {
   }
   
 }
-int Syntaxx_ScopeDef(TToken **tkn) {
+int Syntaxx_ScopeDef(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ScopeDef); // AST
   switch( (*tkn)->type ) {
     case TK_SCOPE:
-      return Syntaxx_ScopeHead(tkn) && Syntaxx_FunctionBody(tkn) && Syntaxx_ScopeEnd(tkn);
+      return Syntaxx_ScopeHead(tkn, &((*nodeAST)->node1) ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2) ) && Syntaxx_ScopeEnd(tkn, &((*nodeAST)->node3) );
       break;
     default:
       fprintf(stderr, "ScopeDef\n");
@@ -227,7 +242,8 @@ int Syntaxx_ScopeDef(TToken **tkn) {
   }
   
 }
-int Syntaxx_ScopeHead(TToken **tkn) {
+int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ScopeHead); // AST
   switch( (*tkn)->type ) {
     case TK_SCOPE: /// scope
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -244,7 +260,8 @@ int Syntaxx_ScopeHead(TToken **tkn) {
   }
   
 }
-int Syntaxx_ScopeEnd(TToken **tkn) {
+int Syntaxx_ScopeEnd(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ScopeEnd); // AST
   switch( (*tkn)->type ) {
     case TK_END: /// end
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -252,7 +269,7 @@ int Syntaxx_ScopeEnd(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_ScopeAfter(tkn);
+      return Syntaxx_ScopeAfter(tkn, &((*nodeAST)->node1) );
       break;
     default:
       fprintf(stderr, "ScopeEnd\n");
@@ -261,11 +278,12 @@ int Syntaxx_ScopeEnd(TToken **tkn) {
   }
   
 }
-int Syntaxx_ScopeAfter(TToken **tkn) {
+int Syntaxx_ScopeAfter(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ScopeAfter); // AST
   switch( (*tkn)->type ) {
     case TK_EOL: /// eol
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      return Syntaxx_ScopeAfter(tkn);
+      return Syntaxx_ScopeAfter(tkn, &((*nodeAST)->node1) );
       break;
     case TK_EOF: /// eof
       return 1;
@@ -277,7 +295,8 @@ int Syntaxx_ScopeAfter(TToken **tkn) {
   }
   
 }
-int Syntaxx_FunctionBody(TToken **tkn) {
+int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_FunctionBody); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_END:
@@ -287,7 +306,7 @@ int Syntaxx_FunctionBody(TToken **tkn) {
     case TK_INPUT:
     case TK_PRINT:
     case TK_RETURN:
-      return Syntaxx_ListVarDef(tkn) && Syntaxx_ListCommand(tkn);
+      return Syntaxx_ListVarDef(tkn, &((*nodeAST)->node1) ) && Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) );
       break;
     default:
       fprintf(stderr, "FunctionBody\n");
@@ -296,7 +315,8 @@ int Syntaxx_FunctionBody(TToken **tkn) {
   }
   
 }
-int Syntaxx_ListVarDef(TToken **tkn) {
+int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ListVarDef); // AST
   switch( (*tkn)->type ) {
     case TK_DIM: /// dim
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -308,17 +328,17 @@ int Syntaxx_ListVarDef(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_DataType(tkn) ) { 
+      if( !Syntaxx_DataType(tkn, &((*nodeAST)->node1) ) ) { 
         return 0;
       }
-      if( !Syntaxx_VarDefAssigment(tkn) ) {
+      if( !Syntaxx_VarDefAssigment(tkn, &((*nodeAST)->node2) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      return Syntaxx_ListVarDef(tkn); 
+      return Syntaxx_ListVarDef(tkn, &((*nodeAST)->node3) ); 
       break;
     case TK_ID:
     case TK_END:
@@ -337,7 +357,8 @@ int Syntaxx_ListVarDef(TToken **tkn) {
   
 }
 
-int Syntaxx_VarDefAssigment(TToken **tkn) {
+int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_VarDefAssigment); // AST
   switch( (*tkn)->type ) {
     case TK_EQUAL: /// =
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -356,7 +377,8 @@ int Syntaxx_VarDefAssigment(TToken **tkn) {
   }
 }
 
-int Syntaxx_ListCommand(TToken **tkn) {
+int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ListCommand); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_DO:
@@ -364,14 +386,14 @@ int Syntaxx_ListCommand(TToken **tkn) {
     case TK_INPUT:
     case TK_PRINT:
     case TK_RETURN:
-      if( !Syntaxx_Command(tkn) ) {
+      if( !Syntaxx_Command(tkn, &((*nodeAST)->node1) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      return Syntaxx_ListCommand(tkn);
+      return Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) );
       break;
     case TK_END:
     case TK_LOOP:
@@ -385,7 +407,8 @@ int Syntaxx_ListCommand(TToken **tkn) {
   }
   
 }
-int Syntaxx_Command(TToken **tkn) {
+int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_Command); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -393,7 +416,7 @@ int Syntaxx_Command(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_Assignment(tkn);
+      return Syntaxx_Assignment(tkn, &((*nodeAST)->node1) );
       break;
     case TK_DO: /// do
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -401,14 +424,14 @@ int Syntaxx_Command(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_Condition(tkn) ) {
+      if( !Syntaxx_Condition(tkn, &((*nodeAST)->node1) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      if( !Syntaxx_ListCommand(tkn) ) {
+      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_LOOP ) { /// loop
@@ -419,7 +442,7 @@ int Syntaxx_Command(TToken **tkn) {
       break;
     case TK_IF: /// if
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_Condition(tkn) ) { 
+      if( !Syntaxx_Condition(tkn, &((*nodeAST)->node1) ) ) { 
         return 0;
       }
       if( (*tkn)->type != TK_THEN ) { /// then
@@ -430,7 +453,7 @@ int Syntaxx_Command(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      if( !Syntaxx_ListCommand(tkn) ) {
+      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_ELSE ) { /// else
@@ -441,7 +464,7 @@ int Syntaxx_Command(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      if( !Syntaxx_ListCommand(tkn) ) {
+      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node3) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_END ) { /// end
@@ -464,7 +487,7 @@ int Syntaxx_Command(TToken **tkn) {
       break;
     case TK_PRINT: /// print
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_ListExpression(tkn);
+      return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1) );
       break;
     case TK_RETURN: /// return
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -480,7 +503,8 @@ int Syntaxx_Command(TToken **tkn) {
   }
   return 0;
 }
-int Syntaxx_ListExpression(TToken **tkn) {
+int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ListExpression); // AST
   // Expression
   if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
     if( Syntaxx_Expression(tkn) ) {
@@ -489,7 +513,7 @@ int Syntaxx_ListExpression(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_ListExpression(tkn);
+      return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1) ); // AST - Mozna zmnena podle toho jak upravim Expression
     }
   }
   switch( (*tkn)->type ) {
@@ -503,7 +527,8 @@ int Syntaxx_ListExpression(TToken **tkn) {
   }
   
 }
-int Syntaxx_Condition(TToken **tkn) {
+int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_Condition); // AST
   // Expression
   if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
     if( !Syntaxx_Expression(tkn) ) {
@@ -515,9 +540,10 @@ int Syntaxx_Condition(TToken **tkn) {
   return 0;
   
 }
-int Syntaxx_Assignment(TToken **tkn) {
+int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_Assignment); // AST
   // Expression
-  if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
+  if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
     if( Syntaxx_Expression(tkn) ) {
       return 1;
     } // Pokud se nepovede tak nedelej nic
@@ -533,7 +559,7 @@ int Syntaxx_Assignment(TToken **tkn) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_ListInParam(tkn) ) {
+      if( !Syntaxx_ListInParam(tkn, &((*nodeAST)->node1) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_BRACKET_ROUND_RIGHT ) { /// )
@@ -549,13 +575,14 @@ int Syntaxx_Assignment(TToken **tkn) {
   }
   return 0;
 }
-int Syntaxx_ListInParam(TToken **tkn) {
+int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_ListInParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
-      return Syntaxx_InParam(tkn) && Syntaxx_NextInParam(tkn);
+      return Syntaxx_InParam(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2) );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -567,13 +594,14 @@ int Syntaxx_ListInParam(TToken **tkn) {
   }
   
 }
-int Syntaxx_InParam(TToken **tkn) {
+int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_InParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
-      return Syntaxx_Term(tkn);
+      return Syntaxx_Term(tkn, &((*nodeAST)->node1) );
       break;
     default:
       fprintf(stderr, "InParam\n");
@@ -582,11 +610,12 @@ int Syntaxx_InParam(TToken **tkn) {
   }
   
 }
-int Syntaxx_NextInParam(TToken **tkn) {
+int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_NextInParam); // AST
   switch( (*tkn)->type ) {
     case TK_COMMA: /// ,
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_InParam(tkn) && Syntaxx_NextInParam(tkn);
+      return Syntaxx_InParam(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2) );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -598,7 +627,8 @@ int Syntaxx_NextInParam(TToken **tkn) {
   }
   
 }
-int Syntaxx_Term(TToken **tkn) {
+int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST) {
+  (*nodeAST) = InitASTNode(AST_Term); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
     case TK_NUM_INTEGER: /// int 5
@@ -767,7 +797,7 @@ int Syntaxx_Expression( TToken **tkn)  {
         RepeatLastToken();
         TListData data;
         if( ListPopBack(ListPostFix, &data) ) {
-          (*tkn) = data.pointer;
+          (*tkn) = (data.pointer);
         }
         break; 
       }
@@ -810,6 +840,7 @@ int Syntaxx_Expression( TToken **tkn)  {
           break;
         }
         else if( ((TToken*)data.pointer)->type == TK_BRACKET_ROUND_LEFT ) {
+          TokenDestroy( ((TToken*)data.pointer) ); // Uvolnim token zavorky ( protoze ho uz nepotrebuji
           break;
         }
         else {
@@ -817,6 +848,7 @@ int Syntaxx_Expression( TToken **tkn)  {
         }
 
       }//-while
+      TokenDestroy( (*tkn) ); // Uvolnim token zavorky ) protoze ho uz nepotrebuji
     }
     else {
       TListData data;
