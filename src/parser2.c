@@ -282,10 +282,11 @@ int Syntaxx_FunctionBody(TToken **tkn) {
     case TK_ID:
     case TK_END:
     case TK_DIM:
-    case TK_WHILE:
+    case TK_DO:
     case TK_IF:
     case TK_INPUT:
     case TK_PRINT:
+    case TK_RETURN:
       return Syntaxx_ListVarDef(tkn) && Syntaxx_ListCommand(tkn);
       break;
     default:
@@ -321,10 +322,11 @@ int Syntaxx_ListVarDef(TToken **tkn) {
       break;
     case TK_ID:
     case TK_END:
-    case TK_WHILE:
+    case TK_DO:
     case TK_IF:
     case TK_INPUT:
     case TK_PRINT:
+    case TK_RETURN:
       return 1;
       break;
     default:
@@ -357,10 +359,11 @@ int Syntaxx_VarDefAssigment(TToken **tkn) {
 int Syntaxx_ListCommand(TToken **tkn) {
   switch( (*tkn)->type ) {
     case TK_ID:
-    case TK_WHILE:
+    case TK_DO:
     case TK_IF:
     case TK_INPUT:
     case TK_PRINT:
+    case TK_RETURN:
       if( !Syntaxx_Command(tkn) ) {
         return 0;
       }
@@ -392,7 +395,11 @@ int Syntaxx_Command(TToken **tkn) {
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       return Syntaxx_Assignment(tkn);
       break;
-    case TK_WHILE: /// while
+    case TK_DO: /// do
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+      if( (*tkn)->type != TK_WHILE ) { /// while
+        return 0;
+      }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( !Syntaxx_Condition(tkn) ) {
         return 0;
@@ -454,16 +461,24 @@ int Syntaxx_Command(TToken **tkn) {
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       return 1;
+      break;
     case TK_PRINT: /// print
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       return Syntaxx_ListExpression(tkn);
+      break;
+    case TK_RETURN: /// return
+      (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+      if( !Syntaxx_Expression(tkn) ) { 
+        return 0;
+      }
+      return 1;
       break;
     default:
       fprintf(stderr, "Command\n");
       return 0;
       break;
   }
-  
+  return 0;
 }
 int Syntaxx_ListExpression(TToken **tkn) {
   // Expression
@@ -532,6 +547,10 @@ int Syntaxx_Assignment(TToken **tkn) {
     } // Pokud se nepovede tak nedelej nic
   }
   switch( (*tkn)->type ) {
+    case TK_LENGTH: /// length
+    case TK_SUBSTR: /// substr
+    case TK_ASC: /// asc
+    case TK_CHR: /// chr
     case TK_ID: /// id
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( (*tkn)->type != TK_BRACKET_ROUND_LEFT ) { /// (
@@ -840,17 +859,17 @@ int Syntaxx_Expression( TToken **tkn)  {
   // Uvolneni tokenu a debugovaci vypis dat
   TListData data;
 
-  fprintf(stderr, ">>>ListPostFix\n");// DEBUG
+  fprintf(stdout, ">>>ListPostFix\n");// DEBUG
   while( ListPop(ListPostFix, &data) ) {
     PrintToken( ((TToken*)data.pointer) );// DEBUG
     TokenDestroy( ((TToken*)data.pointer) );
   }
-  fprintf(stderr, ">>>StackOperator\n");// DEBUG
+  fprintf(stdout, ">>>StackOperator\n");// DEBUG
   while( ListPop(StackOperator, &data) ) {
     PrintToken( ((TToken*)data.pointer) );// DEBUG
     TokenDestroy( ((TToken*)data.pointer) );
   }
-  fprintf(stderr, ">>>\n");// DEBUG
+  fprintf(stdout, ">>>\n");// DEBUG
 
   ListDestroy(StackOperator);
   ListDestroy(ListPostFix);
