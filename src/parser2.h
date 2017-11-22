@@ -19,6 +19,7 @@
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL);
 int SyntaxStartParse();
 
+// nodeAST je aktualni uzel, ktery je potreba teprve vytvorit/inicializovat.
 int Syntaxx_Program(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_ListDecDef(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST);
@@ -44,7 +45,10 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST);
 
-int Syntaxx_Expression(TToken **tkn);
+// nodeAST je nadrazeny uzel nikoliv uzel Expression.
+// pr1: AST_ListExpression 
+// pr2: AST_Condition
+int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST);
 
 #endif
 

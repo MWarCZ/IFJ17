@@ -59,6 +59,14 @@ void DestroyASTNodeSafely(TATSNode **node) {
     TokenDestroy( (*node)->token2 );
     (*node)->token2 = NULL;
   }
+  if( (*node)->listPostFix != NULL ) {
+    TListData data;
+    while( ListPop( (*node)->listPostFix , &data) ) {
+      TokenDestroy( ((TToken*)data.pointer) );
+    }
+    ListDestroy( (*node)->listPostFix );
+    (*node)->listPostFix = NULL;
+  }
   DestroyASTNodeSafely( &((*node)->node1) );
   DestroyASTNodeSafely( &((*node)->node2) );
   DestroyASTNodeSafely( &((*node)->node3) );
