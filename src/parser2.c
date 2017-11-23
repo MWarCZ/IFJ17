@@ -853,7 +853,8 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
   }
 
   TTokenType lastToken = TK_BRACKET_ROUND_LEFT;
-
+  int NumberOfOperand = 0; // Pocet Operandu tj TK_ID,TK_NUM_*
+  int NumberOfOperator = 0; // Pocet Operatoru tj TK_PLUS, ...
   do {
 
     if( CanBeTokenInExpression( (*tkn)->type ) ) {
@@ -876,11 +877,13 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
       TListData data;
       data.pointer = (*tkn);
       ListPushBack(ListPostFix, data);
+      NumberOfOperand++;
     }
     else if( (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
       TListData data;
       data.pointer = (*tkn);
       ListPushBack(ListPostFix, data);
+      NumberOfOperand++;
     }
     else if(  (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
       TListData data;
@@ -896,6 +899,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
       }//- while
       data.pointer = (*tkn);
       ListPush(StackOperator, data);
+      NumberOfOperator++;
     }
     else if(  (*tkn)->type == TK_BRACKET_ROUND_RIGHT ) {
       TListData data;
@@ -937,6 +941,10 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
     (*tkn) = GetNextToken(); // Jen novy token ale stary neuvolnovat nebot je v ListPostFix nebo v StackOperator
   } while(!ERR_EXIT_STATUS);
 
+  if( returnValue && NumberOfOperand != (NumberOfOperator + 1) ) {
+    fprintf(stderr, ">Expression: Na konci vyrazu je operator.\n");
+    CallError(ERR_SYN);
+  }
 
   if( returnValue && ListEmpty(ListPostFix) ) { // Pokud je vystupni Vyraz prazdny, tak neexistoval
     fprintf(stderr, ">Expression: Nebyl zadan vyraz.\n");
