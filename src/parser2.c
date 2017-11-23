@@ -1057,13 +1057,6 @@ int Semantic_ControlExpression( TList **listPostFix ) {
     }
   }
 
-  printf(">>>semantic Expression\n"); /// DEBUG
-  for(i = 0; i < (*listPostFix)->count; i++ ) { /// DEBUG
-    ListGet( (*listPostFix), i, &data ); /// DEBUG
-    PrintToken( ((TToken*)data.pointer) ); /// DEBUG
-  }
-  printf("<<<sE\n"); /// DEBUG
-
   ListDestroy(stack);
   return 1;
 }

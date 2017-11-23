@@ -67,8 +67,8 @@ TToken* GetNextToken() {
     readToken->string = malloc(strlen(lastToken->string)+1);     
     strcpy(readToken->string, lastToken->string);   
 
-    fprintf(stderr, ">RepeatToke:\n"); // DEBUG
-    PrintToken(readToken);// DEBUG
+    //fprintf(stderr, ">RepeatToke:\n"); // DEBUG
+    //PrintToken(readToken);// DEBUG
     return readToken;
   }
 
@@ -187,7 +187,7 @@ TToken* GetNextToken() {
 
   StringDestroy(readString);
 
-  PrintToken(readToken);// DEBUG
+  //PrintToken(readToken);// DEBUG
 
   return readToken;
 }
