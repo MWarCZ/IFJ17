@@ -50,6 +50,8 @@ int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST);
 // pr2: AST_Condition
 int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST);
 
+int Semantic_ControlExpression( TList **listPostFix );
+
 #endif
 
 // Soubor: src/parser2.h

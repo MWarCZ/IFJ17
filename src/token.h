@@ -84,7 +84,11 @@ typedef enum {
   TK_MUL, // *
   TK_DIV, // /
   TK_MOD, // Mod
-  TK_DIV_INT
+  TK_DIV_INT, // celociselne deleni
+
+  TK_INT2FLOAT, // Interni token, ktery rika preved cele cislo na desetine - pouzit ve vyrazech pri generovani kodu
+  TK_FLOAT2INT // Interni token, ktery rika preved desetine cislo na cele - pouzit ve vyrazech pri generovani kodu
+
 } TTokenType;
 
 typedef union {

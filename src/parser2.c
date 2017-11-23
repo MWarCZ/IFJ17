@@ -722,6 +722,44 @@ int CanBeOperatorPush(TTokenType operatorNow, TTokenType operatorOnStack ) {
   return 0;
 }
 
+int IsOperator(TTokenType type) {
+  switch(type) {
+    case TK_PLUS:
+    case TK_MINUS:
+    case TK_MUL:
+    case TK_DIV:
+    case TK_MOD:
+    case TK_DIV_INT:
+    case TK_LESS: 
+    case TK_LESS_EQUAL: 
+    case TK_GREATER: 
+    case TK_GREATER_EQUAL:
+    case TK_EQUAL: 
+    case TK_NOT_EQUAL:  
+      return 1;
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
+int IsOperatorCompare(TTokenType type) {
+  switch(type) {
+    case TK_LESS: 
+    case TK_LESS_EQUAL: 
+    case TK_GREATER: 
+    case TK_GREATER_EQUAL:
+    case TK_EQUAL: 
+    case TK_NOT_EQUAL:  
+      return 1;
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
 // Prevod vyrazu z infix na posfix - Muze nasledovat token ... za tokenem ...?
 int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
   switch(last) {
@@ -848,7 +886,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
       data.pointer = (*tkn);
       ListPush(StackOperator, data);
     }
-    else if( (*tkn)->type == TK_PLUS || (*tkn)->type == TK_MINUS || (*tkn)->type == TK_MUL || (*tkn)->type == TK_DIV ||  (*tkn)->type == TK_DIV_INT ||  (*tkn)->type == TK_MOD || (*tkn)->type == TK_LESS || (*tkn)->type == TK_LESS_EQUAL || (*tkn)->type == TK_GREATER || (*tkn)->type == TK_GREATER_EQUAL || (*tkn)->type == TK_EQUAL || (*tkn)->type == TK_NOT_EQUAL ) {
+    else if( IsOperator( (*tkn)->type ) ) {
       // Podle priority operatoru zpracuj operatory
       TListData data;
       while( ListFront(StackOperator, &data) && !CanBeOperatorPush( (*tkn)->type, ( (TToken*)data.pointer)->type ) ) {
@@ -913,7 +951,10 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
 
   // ListPostFix obsahuje vyraz v posix podobe. (Pro pozdejsi zpracovani kodu na stacku)
   if( !ERR_EXIT_STATUS && returnValue ) {
-      (*nodeAST)->listPostFix = ListPostFix; // AST - listPostFix
+    // Semanticka kontrola
+    Semantic_ControlExpression( &ListPostFix );
+
+    (*nodeAST)->listPostFix = ListPostFix; // AST - listPostFix
   }
   else { // Uvolneni pameti pokud se nejedna o vyraz nebo doslo k chybe
     //fprintf(stdout, ">>>ListPostFix\n");// DEBUG
@@ -935,6 +976,97 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
   return !ERR_EXIT_STATUS && returnValue;
 } //- int Syntaxx_Expression
 
+// ---------------------------------
+// Semanticka kontrola
+// ---------------------------------
+
+int Semantic_ControlExpression( TList **listPostFix ) {
+  TList *stack;
+  stack = ListInit();
+
+  TListData data;
+  TListData tmpData;
+  int i = 0;
+
+  for(i = 0; i < (*listPostFix)->count; i++ ) {
+    ListGet( (*listPostFix), i, &data );
+    if( ((TToken*)data.pointer)->type == TK_ID ) {
+      // Najit v tabulce symbolu datovy typ
+      // TODO - Typ z tabulky symbolu
+      tmpData.value = TK_NUM_INTEGER; // Datovy typ ale ve formatu typu tokenu TK_NUM_* (pr TK_INTEGER prevede na TK_NUM_INTEGER - pro snazsi porovnani)
+      tmpData.i = i; // Index kde se polozka nachazi v listu
+      ListPush( stack, tmpData );
+    }
+    else if( ((TToken*)data.pointer)->type == TK_NUM_INTEGER || ((TToken*)data.pointer)->type == TK_NUM_DOUBLE || ((TToken*)data.pointer)->type == TK_NUM_STRING ) {
+      tmpData.value = ((TToken*)data.pointer)->type ; // typ tokenu TK_NUM_* (datovy typ)
+      tmpData.i = i; // Index kde se polozka nachazi v listu
+      ListPush( stack, tmpData );
+    }
+    else if( IsOperator( ((TToken*)data.pointer)->type ) ) {
+      TListData x1;
+      TListData x2;
+      ListPop( stack, &x2);
+      ListPop( stack, &x1);
+
+      if( ( x1.value == TK_NUM_STRING && x2.value == TK_NUM_STRING ) && ( ((TToken*)data.pointer)->type != TK_PLUS  && !IsOperatorCompare(((TToken*)data.pointer)->type) ) ) {
+        // string + string OK 
+        // string compare string OK
+        // jinak chyba
+        // ERR_COMP
+        CallError(ERR_COMP);
+        break;
+      }
+      else if( x1.value == x2.value ) { // Stejne datove typy
+        tmpData.value = x1.value;
+        tmpData.i = ( IsOperatorCompare(((TToken*)data.pointer)->type) )? TK_TRUE : i;
+        ListPush( stack, tmpData );
+      }
+      else if( x1.value == TK_NUM_INTEGER && x2.value == TK_NUM_DOUBLE ) { // Na vrcholu zasobniku je double a za nim nasleduje int ( v postFixu: int,double,operator )
+        tmpData.pointer = TokenInit();
+        ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT; 
+        i++;
+        ListInsert( (*listPostFix), x1.i+1 , tmpData ); // Vlozim Int2Float do listu PostFix vyrazu na pozici za prevadenou hodnotu
+        tmpData.pointer = NULL;
+        tmpData.value = ( IsOperatorCompare(((TToken*)data.pointer)->type) )? TK_TRUE : TK_NUM_DOUBLE;
+        tmpData.i = i;
+        ListPush( stack, tmpData );
+      }
+      else if( x1.value == TK_NUM_DOUBLE && x2.value == TK_NUM_INTEGER ) { // Na vrcholu zasobniku je int a za nim nasleduje double ( v postFixu: double,int,operator )
+        tmpData.pointer = TokenInit();
+        ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT;
+        i++;
+        ListInsert( (*listPostFix), x2.i+1 , tmpData ); // Vlozim Int2Float do listu PostFix vyrazu na pozici za prevadenou hodnotu
+        tmpData.pointer = NULL;
+        tmpData.value = ( IsOperatorCompare(((TToken*)data.pointer)->type) )? TK_TRUE : TK_NUM_DOUBLE;
+        tmpData.i = i;
+        ListPush( stack, tmpData );
+      }
+      else if( ( (x1.value == TK_NUM_DOUBLE || x1.value == TK_NUM_INTEGER) && x2.value == TK_NUM_STRING ) || ( x1.value == TK_NUM_STRING && (x2.value == TK_NUM_DOUBLE || x2.value == TK_NUM_INTEGER) ) ) {
+        // ERR_COMP
+        CallError(ERR_COMP);
+        break;
+      }
+      else {
+        // ERR_COMP
+        CallError(ERR_COMP);
+        break;
+      }
+    }
+    else {
+      // ?
+    }
+  }
+
+  printf(">>>semantic Expression\n"); /// DEBUG
+  for(i = 0; i < (*listPostFix)->count; i++ ) { /// DEBUG
+    ListGet( (*listPostFix), i, &data ); /// DEBUG
+    PrintToken( ((TToken*)data.pointer) ); /// DEBUG
+  }
+  printf("<<<sE\n"); /// DEBUG
+
+  ListDestroy(stack);
+  return 1;
+}
 
 #endif
 
