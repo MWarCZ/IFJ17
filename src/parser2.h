@@ -50,7 +50,7 @@ int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST);
 // pr2: AST_Condition
 int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST);
 
-int Semantic_ControlExpression( TList **listPostFix );
+int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST );
 
 #endif
 

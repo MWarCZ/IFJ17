@@ -24,7 +24,7 @@
 #include "ast.h"
 #include "parser2.h"
 
-symtable_t *GlobalSymtable = NULL; // Globalni tabulka symbolu alias Tabulka fuknci
+symtable_t *GlobalSymtable = NULL; // TS Globalni tabulka symbolu alias Tabulka fuknci
 
 // Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
@@ -37,7 +37,7 @@ TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
 }
 
 int SyntaxStartParse() {
-  SymtableInit(&GlobalSymtable);
+  SymtableInit(&GlobalSymtable); // TS
   TToken *tmpToken = NULL;
   TToken** tkn = &tmpToken;
 
@@ -252,6 +252,7 @@ int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST) {
   (*nodeAST) = InitASTNode(AST_ScopeHead); // AST
   switch( (*tkn)->type ) {
     case TK_SCOPE: /// scope
+      // TS
       (*nodeAST)->token1 = (*tkn); /// AST scope
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -952,7 +953,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
   // ListPostFix obsahuje vyraz v posix podobe. (Pro pozdejsi zpracovani kodu na stacku)
   if( !ERR_EXIT_STATUS && returnValue ) {
     // Semanticka kontrola
-    Semantic_ControlExpression( &ListPostFix );
+    Semantic_ControlExpression( &ListPostFix, nodeAST );
 
     (*nodeAST)->listPostFix = ListPostFix; // AST - listPostFix
   }
@@ -980,7 +981,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
 // Semanticka kontrola
 // ---------------------------------
 
-int Semantic_ControlExpression( TList **listPostFix ) {
+int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST ) {
   TList *stack;
   stack = ListInit();
 
@@ -1017,8 +1018,8 @@ int Semantic_ControlExpression( TList **listPostFix ) {
         break;
       }
       else if( x1.value == x2.value ) { // Stejne datove typy
-        tmpData.value = x1.value;
-        tmpData.i = ( IsOperatorCompare(((TToken*)data.pointer)->type) )? TK_TRUE : i;
+        tmpData.value = ( IsOperatorCompare( ((TToken*)data.pointer)->type) )? TK_TRUE : x1.value;
+        tmpData.i = i;
         ListPush( stack, tmpData );
       }
       else if( x1.value == TK_NUM_INTEGER && x2.value == TK_NUM_DOUBLE ) { // Na vrcholu zasobniku je double a za nim nasleduje int ( v postFixu: int,double,operator )
@@ -1055,6 +1056,18 @@ int Semantic_ControlExpression( TList **listPostFix ) {
     else {
       // ?
     }
+  }
+
+  // printf(">>>semantic Expression\n"); /// DEBUG
+  // for(i = 0; i < (*listPostFix)->count; i++ ) { /// DEBUG
+  //   ListGet( (*listPostFix), i, &data ); /// DEBUG
+  //   PrintToken( ((TToken*)data.pointer) ); /// DEBUG
+  // }
+  // printf("<<<sE\n"); /// DEBUG
+
+  if( ListFront( stack, &tmpData) ) { // Ulozi se datovy typ vysledku
+    (*nodeAST)->token2 = TokenInit();
+    ((*nodeAST)->token2)->type = tmpData.value;
   }
 
   ListDestroy(stack);
