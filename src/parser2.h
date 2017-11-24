@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include "token.h"
 #include "symtable.h"
+#include "ast.h"
 
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL);
 int SyntaxStartParse();
