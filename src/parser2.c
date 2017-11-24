@@ -24,7 +24,7 @@
 #include "ast.h"
 #include "parser2.h"
 
-symtable_t *GlobalSymtable = NULL; // TS Globalni tabulka symbolu alias Tabulka fuknci
+symtable_t *GlobalSymtable = NULL; /* TS */ // Globalni tabulka symbolu alias Tabulka fuknci
 
 // Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
@@ -37,18 +37,23 @@ TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
 }
 
 int SyntaxStartParse() {
-  SymtableInit(&GlobalSymtable); // TS
+  SymtableInit(&GlobalSymtable); /* TS */
   TToken *tmpToken = NULL;
   TToken** tkn = &tmpToken;
 
   TATSNode *rootAST = NULL; // AST
+
+  SyntaxInitBuildInFunction();
 
   //(*tkn) = GetNextToken();
   (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
 
   if( Syntaxx_Program(tkn, &rootAST ) ) {
   }
-  else {
+  else if( ERR_EXIT_STATUS ) {
+    // pokud exit status neni OK tak doslo k jinemu typu chyby jiz drive
+  }
+  else { // Doslko konkretne k syntakticke chybe
     // ERR_SYN
     CallError(ERR_SYN);
   }
@@ -78,16 +83,17 @@ int Syntaxx_Program(TToken **tkn, TATSNode **nodeAST) {
 }
 
 int Syntaxx_ListDecDef(TToken **tkn, TATSNode **nodeAST) {
+  symtable_elem_t *gel = NULL; /* TS */
   (*nodeAST) = InitASTNode(AST_ListDecDef); // AST
   switch( (*tkn)->type ) {
     case TK_DECLARE: /// declare
       (*nodeAST)->token1 = (*tkn); /// AST declare
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1) ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node2)  );
+      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1), &gel, 1 ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node2)  );
       break;
     case TK_FUNCTION:
-      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1) ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2)  ) && Syntaxx_FunctionEnd(tkn, &((*nodeAST)->node3)  ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node4)  );
+      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1), &gel, 0 ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2), &gel ) && Syntaxx_FunctionEnd(tkn, &((*nodeAST)->node3)  ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node4)  );
       break;
     case TK_SCOPE:
       return 1;
@@ -99,7 +105,8 @@ int Syntaxx_ListDecDef(TToken **tkn, TATSNode **nodeAST) {
   }
 }
 
-int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow) {
+  int checkParamNow = 0; /* TS */
   (*nodeAST) = InitASTNode(AST_FunctionHead); // AST
   switch( (*tkn)->type ) {
     case TK_FUNCTION: /// function
@@ -107,14 +114,43 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST) {
       if( (*tkn)->type != TK_ID ) { /// id
         return 0;
       }
+      /* TS s*/
+      (*gel) = SymtableFind(GlobalSymtable,  (*tkn)->string ); 
+      if( (*gel) == NULL ) { // Pokud funkce neexistuje tak ji vytvor
+        (*gel) = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
+        (*gel)->elemType = SYM_TYPE_FUNCTION;
+        (*gel)->listParam = ListInit();
+        checkParamNow = 0; // List parametru se nebude kontrolovat ale vytvaret
+      }
+      else {
+        checkParamNow = 1; // List parametru se bude kontrolovat
+      }
+      if( isDeclareNow) {
+        if( (*gel)->declared ) {
+          // ERR_SEM
+          fprintf(stderr, "Funkce byla jiz drive deklarovana.\n");
+          CallError(ERR_SEM);
+          return 0;
+        }
+        (*gel)->declared = 1;
+      }
+      else {
+        if( (*gel)->defined ) {
+          // ERR_SEM
+          fprintf(stderr, "Funkce byla jiz drive definovana.\n");
+          CallError(ERR_SEM);
+          return 0;
+        }
+        (*gel)->defined = 1;
+      }
+      /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( (*tkn)->type != TK_BRACKET_ROUND_LEFT ) { /// (
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 ); 
-      if( !Syntaxx_ListParam(tkn, &((*nodeAST)->node1) ) ) {
+      if( !Syntaxx_ListParam(tkn, &((*nodeAST)->node1), gel, isDeclareNow, checkParamNow ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_BRACKET_ROUND_RIGHT ) { /// )
@@ -125,7 +161,7 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_DataType(tkn, &((*nodeAST)->node2) ) ) {
+      if( !Syntaxx_DataType(tkn, &((*nodeAST)->node2), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
@@ -141,11 +177,12 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow) {
+  int indexOfParam = 0; /* TS */
   (*nodeAST) = InitASTNode(AST_ListParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
-      return Syntaxx_Param(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2) );
+      return Syntaxx_Param(tkn, &((*nodeAST)->node1), gel, isDeclareNow, checkParamNow, indexOfParam ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2), gel, isDeclareNow, checkParamNow, indexOfParam+1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -157,18 +194,93 @@ int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow, int indexOfParam) {
+  symtable_elem_t *lel = NULL; /* TS */
+  TListData data; /* TS */
   (*nodeAST) = InitASTNode(AST_Param); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
+      /* TS s*/
+      lel = SymtableFind( GlobalSymtable,  (*tkn)->string ); 
+      if( lel != NULL ) { // Pokud je id nazev existujici funkce tak je to chyba
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      if( !isDeclareNow ) {// definice - zkontroluje existenci promnene a prida promenou do lok. tabulky
+        lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
+        if( lel == NULL ) { // Pokud promena neexistuje tak ji vytvor
+          lel = AddElemGlobal( (*gel)->local_symtable,  (*tkn)->string );
+          lel->elemType = SYM_TYPE_PARAM;
+        }
+        else {
+          // ERR_SEM
+          fprintf(stderr, "Dublicitni nazev parametru.\n");
+          CallError(ERR_SEM);
+          return 0;
+        }
+      }
+      else {
+        
+      }
+      /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( (*tkn)->type != TK_AS ) { /// as
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_DataType(tkn, &((*nodeAST)->node1) );
+
+      if( !isDeclareNow ) { // je definice - takze mame prvek lokalni tabulky
+        if( !Syntaxx_DataType(tkn, &((*nodeAST)->node1), &lel ) ) {
+          return 0;
+        }
+        if( !checkParamNow ) { // List parametru se teprve plni
+          data.value = lel->dataType; /* TS */
+          ListPushBack( (*gel)->listParam, data ); /* TS */
+        }
+        else { // List parametru se kontroluje
+          if( !ListGet( (*gel)->listParam, indexOfParam, &data ) ) { 
+            // List parametru je kradsi nez prave nacitany seznam parametru
+            // ERR_SEM
+            fprintf(stderr, "List parametru v declaraci a definici nejsou stejne dlouhe.\n");
+            CallError(ERR_SEM);
+            return 0;
+          }
+          if( (st_datatype_t)data.value != lel->dataType ) { // datove typy parametru nejsou shodne
+            // ERR_SEM
+            CallError(ERR_SEM);
+            return 0;
+          }
+        }
+      }
+      else { // je deklarace - takze musime nějak ziskat datovy typ :D
+        // pouzijeme jako prostrednika gel, funkce dostava totiz navratovy typ az nakonec, takze v dobe parametru je mozne jej vyuzit jako docasnou promnenou. (gel->dataType)
+        if( !Syntaxx_DataType(tkn, &((*nodeAST)->node1), gel ) ) {
+          return 0;
+        }
+        if( !checkParamNow ) { // List parametru se teprve plni
+          data.value = (*gel)->dataType; /* TS */
+          ListPushBack( (*gel)->listParam, data ); /* TS */
+        }
+        else { // ListParametru se kontroluje
+          if( !ListGet( (*gel)->listParam, indexOfParam, &data ) ) { 
+            // List parametru je kradsi nez prave nacitany seznam parametru
+            // ERR_SEM
+            fprintf(stderr, "List parametru v declaraci a definici nejsou stejne dlouhe.\n");
+            CallError(ERR_SEM);
+            return 0;
+          }
+          if( (st_datatype_t)data.value != (*gel)->dataType ) { // datove typy parametru nejsou shodne
+            // ERR_SEM
+            CallError(ERR_SEM);
+            return 0;
+          }
+        }
+        (*gel)->dataType = SYM_DATATYPE_VOID; // radsi premazeme, at nenastane nekde pozdeji chyba
+      }
+
+      return 1;
       break;
     default:
       fprintf(stderr, "Param\n");
@@ -177,12 +289,12 @@ int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow, int indexOfParam) {
   (*nodeAST) = InitASTNode(AST_NextParam); // AST
   switch( (*tkn)->type ) {
     case TK_COMMA: /// ,
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_Param(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2) );
+      return Syntaxx_Param(tkn, &((*nodeAST)->node1), gel, isDeclareNow, checkParamNow, indexOfParam ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2), gel, isDeclareNow, checkParamNow, indexOfParam+1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -194,12 +306,13 @@ int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **elem) {
   (*nodeAST) = InitASTNode(AST_DataType); // AST
   switch( (*tkn)->type ) {
     case TK_INTEGER: /// integer
     case TK_DOUBLE: /// double
     case TK_STRING: /// string
+      (*elem)->dataType = TokenTypeToSymDataType( (*tkn)->type ); /* TS */
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -236,10 +349,11 @@ int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST) {
   
 }
 int Syntaxx_ScopeDef(TToken **tkn, TATSNode **nodeAST) {
+  symtable_elem_t *gel = NULL; /* TS */
   (*nodeAST) = InitASTNode(AST_ScopeDef); // AST
   switch( (*tkn)->type ) {
     case TK_SCOPE:
-      return Syntaxx_ScopeHead(tkn, &((*nodeAST)->node1) ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2) ) && Syntaxx_ScopeEnd(tkn, &((*nodeAST)->node3) );
+      return Syntaxx_ScopeHead(tkn, &((*nodeAST)->node1), &gel ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2), &gel ) && Syntaxx_ScopeEnd(tkn, &((*nodeAST)->node3) );
       break;
     default:
       fprintf(stderr, "ScopeDef\n");
@@ -248,11 +362,23 @@ int Syntaxx_ScopeDef(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_ScopeHead); // AST
   switch( (*tkn)->type ) {
     case TK_SCOPE: /// scope
-      // TS
+      /* TS s*/
+      (*gel) = SymtableFind(GlobalSymtable,  (*tkn)->string ); // jen scope muze se jmenovat scope
+      if( (*gel) == NULL ) { // Pokud funkce neexistuje tak ji vytvor
+        (*gel) = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
+        (*gel)->elemType = SYM_TYPE_FUNCTION;
+        (*gel)->dataType = SYM_DATATYPE_VOID;
+      }
+      else {
+        // ERR_SYN
+        CallError(ERR_SYN);
+        return 0;
+      }
+      /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST scope
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -304,7 +430,7 @@ int Syntaxx_ScopeAfter(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_FunctionBody); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
@@ -315,7 +441,7 @@ int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST) {
     case TK_INPUT:
     case TK_PRINT:
     case TK_RETURN:
-      return Syntaxx_ListVarDef(tkn, &((*nodeAST)->node1) ) && Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) );
+      return Syntaxx_ListVarDef(tkn, &((*nodeAST)->node1), gel ) && Syntaxx_ListCommand(tkn, &((*nodeAST)->node2), gel );
       break;
     default:
       fprintf(stderr, "FunctionBody\n");
@@ -324,7 +450,8 @@ int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+  symtable_elem_t *lel = NULL; /* TS */
   (*nodeAST) = InitASTNode(AST_ListVarDef); // AST
   switch( (*tkn)->type ) {
     case TK_DIM: /// dim
@@ -332,6 +459,25 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST) {
       if( (*tkn)->type != TK_ID ) { /// id
         return 0;
       }
+      /* TS s*/
+      lel = SymtableFind( GlobalSymtable,  (*tkn)->string ); 
+      if( lel != NULL ) { // Nazev promene je stejny jako jmeno existujici funkce
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
+      if( lel == NULL ) { // Pokud promena neexistuje tak ji vytvor
+        lel = AddElemGlobal( (*gel)->local_symtable,  (*tkn)->string );
+        lel->elemType = SYM_TYPE_VAR;
+      }
+      else {
+        // ERR_SEM
+        fprintf(stderr, "Dublicitni nazev promene.\n");
+        CallError(ERR_SEM);
+        return 0;
+      }
+      /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -339,17 +485,17 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_DataType(tkn, &((*nodeAST)->node1) ) ) { 
+      if( !Syntaxx_DataType(tkn, &((*nodeAST)->node1), &lel ) ) { 
         return 0;
       }
-      if( !Syntaxx_VarDefAssigment(tkn, &((*nodeAST)->node2) ) ) {
+      if( !Syntaxx_VarDefAssigment(tkn, &((*nodeAST)->node2), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      return Syntaxx_ListVarDef(tkn, &((*nodeAST)->node3) ); 
+      return Syntaxx_ListVarDef(tkn, &((*nodeAST)->node3), gel ); 
       break;
     case TK_ID:
     case TK_END:
@@ -368,12 +514,12 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST) {
   
 }
 
-int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_VarDefAssigment); // AST
   switch( (*tkn)->type ) {
     case TK_EQUAL: /// =
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_Expression(tkn, nodeAST) ) { // TK_EXPRESSION
+      if( !Syntaxx_Expression(tkn, nodeAST, gel) ) { // TK_EXPRESSION
         return 0;
       }
       return 1;
@@ -388,7 +534,7 @@ int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST) {
   }
 }
 
-int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_ListCommand); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
@@ -397,14 +543,14 @@ int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST) {
     case TK_INPUT:
     case TK_PRINT:
     case TK_RETURN:
-      if( !Syntaxx_Command(tkn, &((*nodeAST)->node1) ) ) {
+      if( !Syntaxx_Command(tkn, &((*nodeAST)->node1), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      return Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) );
+      return Syntaxx_ListCommand(tkn, &((*nodeAST)->node2), gel );
       break;
     case TK_END:
     case TK_LOOP:
@@ -418,10 +564,19 @@ int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+  symtable_elem_t *lel = NULL; /* TS */
   (*nodeAST) = InitASTNode(AST_Command); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
+      /* TS s*/
+      lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
+      if( lel == NULL ) { // Nejze priradit do promene ktera neexistuje
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -429,7 +584,7 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_Assignment(tkn, &((*nodeAST)->node1) );
+      return Syntaxx_Assignment(tkn, &((*nodeAST)->node1), gel );
       break;
     case TK_DO: /// do
       (*nodeAST)->token1 = (*tkn); /// AST do
@@ -439,14 +594,14 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_Condition(tkn, &((*nodeAST)->node1) ) ) {
+      if( !Syntaxx_Condition(tkn, &((*nodeAST)->node1), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) ) ) {
+      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node2), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_LOOP ) { /// loop
@@ -459,7 +614,7 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
       (*nodeAST)->token1 = (*tkn); /// AST if
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_Condition(tkn, &((*nodeAST)->node1) ) ) { 
+      if( !Syntaxx_Condition(tkn, &((*nodeAST)->node1), gel ) ) { 
         return 0;
       }
       if( (*tkn)->type != TK_THEN ) { /// then
@@ -470,7 +625,7 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node2) ) ) {
+      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node2), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_ELSE ) { /// else
@@ -481,7 +636,7 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
-      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node3) ) ) {
+      if( !Syntaxx_ListCommand(tkn, &((*nodeAST)->node3), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_END ) { /// end
@@ -501,6 +656,14 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
       if( (*tkn)->type != TK_ID ) { /// id
         return 0;
       }
+      /* TS s*/
+      lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
+      if( lel == NULL ) { // Nelze nacitat do promene ktera neexistuje
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      /* TS e*/
       (*nodeAST)->token2 = (*tkn); /// AST input id
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -510,13 +673,13 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
       (*nodeAST)->token1 = (*tkn); /// AST print
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1) );
+      return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1), gel );
       break;
     case TK_RETURN: /// return
       (*nodeAST)->token1 = (*tkn); /// AST return
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_Expression(tkn, nodeAST) ) { 
+      if( !Syntaxx_Expression(tkn, nodeAST, gel) ) { 
         return 0;
       }
       return 1;
@@ -528,17 +691,17 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST) {
   }
   return 0;
 }
-int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_ListExpression); // AST
   // Expression
   if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
-    if( Syntaxx_Expression(tkn, nodeAST) ) {
+    if( Syntaxx_Expression(tkn, nodeAST, gel) ) {
       if( (*tkn)->type != TK_SEMICOLON ) {
         fprintf(stderr, "semicolon\n");
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1) ); // AST - Mozna zmnena podle toho jak upravim Expression
+      return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1), gel ); // AST - Mozna zmnena podle toho jak upravim Expression
     }
   }
   switch( (*tkn)->type ) {
@@ -552,11 +715,11 @@ int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_Condition); // AST
   // Expression
   if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
-    if( !Syntaxx_Expression(tkn, nodeAST) ) {
+    if( !Syntaxx_Expression(tkn, nodeAST, gel) ) {
       return 0;
     } 
     return 1;
@@ -565,11 +728,12 @@ int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST) {
   return 0;
   
 }
-int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+  symtable_elem_t *lel = NULL; /* TS */
   (*nodeAST) = InitASTNode(AST_Assignment); // AST
   // Expression
   if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
-    if( Syntaxx_Expression(tkn, nodeAST) ) {
+    if( Syntaxx_Expression(tkn, nodeAST, gel) ) {
       return 1;
     } // Pokud se nepovede tak nedelej nic
   }
@@ -579,6 +743,14 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST) {
     case TK_ASC: /// asc
     case TK_CHR: /// chr
     case TK_ID: /// id
+      /* TS s*/
+      lel = SymtableFind( GlobalSymtable,  (*tkn)->string ); 
+      if( lel == NULL ) { // ID musi byt funkce. Muzes volat jen funkce ktere existuji.
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id | lenght | substr | asc | chr
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -586,7 +758,7 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_ListInParam(tkn, &((*nodeAST)->node1) ) ) {
+      if( !Syntaxx_ListInParam(tkn, &((*nodeAST)->node1), gel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_BRACKET_ROUND_RIGHT ) { /// )
@@ -602,14 +774,14 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST) {
   }
   return 0;
 }
-int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_ListInParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
-      return Syntaxx_InParam(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2) );
+      return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -621,14 +793,14 @@ int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_InParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
-      return Syntaxx_Term(tkn, &((*nodeAST)->node1) );
+      return Syntaxx_Term(tkn, &((*nodeAST)->node1), gel );
       break;
     default:
       fprintf(stderr, "InParam\n");
@@ -637,12 +809,12 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_NextInParam); // AST
   switch( (*tkn)->type ) {
     case TK_COMMA: /// ,
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_InParam(tkn, &((*nodeAST)->node1) ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2) );
+      return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -654,7 +826,8 @@ int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST) {
   }
   
 }
-int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+  (void)gel; /* TS TODO*/
   (*nodeAST) = InitASTNode(AST_Term); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
@@ -839,7 +1012,8 @@ int CanBeTokenInExpression(TTokenType type) {
 
 }
 
-int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
+int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)  {
+  (void)gel; /* TS TODO */
   int returnValue = 1; // Navratova hodnota
   TList *StackOperator; // Stack Tokenu
   TList *ListPostFix; // List Tokenu
@@ -860,7 +1034,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
     if( CanBeTokenInExpression( (*tkn)->type ) ) {
       if( !CanBeTokenAfterToken( (*tkn)->type, lastToken ) ) {
         // neocekavany token vyrazu
-        fprintf(stderr, ">Expression: Neocekavany token, ale nejedna se o chybu.\n");// DEBUG
+        // fprintf(stderr, ">Expression: Neocekavany token, ale nejedna se o chybu.\n");// DEBUG
         returnValue = 0;
         RepeatLastToken();
         TListData data;
@@ -961,7 +1135,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
   // ListPostFix obsahuje vyraz v posix podobe. (Pro pozdejsi zpracovani kodu na stacku)
   if( !ERR_EXIT_STATUS && returnValue ) {
     // Semanticka kontrola
-    Semantic_ControlExpression( &ListPostFix, nodeAST );
+    Semantic_ControlExpression( &ListPostFix, nodeAST, gel );
 
     (*nodeAST)->listPostFix = ListPostFix; // AST - listPostFix
   }
@@ -989,7 +1163,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST)  {
 // Semanticka kontrola
 // ---------------------------------
 
-int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST ) {
+int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtable_elem_t **gel ) {
   TList *stack;
   stack = ListInit();
 
@@ -1000,9 +1174,16 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST ) {
   for(i = 0; i < (*listPostFix)->count; i++ ) {
     ListGet( (*listPostFix), i, &data );
     if( ((TToken*)data.pointer)->type == TK_ID ) {
-      // Najit v tabulce symbolu datovy typ
-      // TODO - Typ z tabulky symbolu
-      tmpData.value = TK_NUM_INTEGER; // Datovy typ ale ve formatu typu tokenu TK_NUM_* (pr TK_INTEGER prevede na TK_NUM_INTEGER - pro snazsi porovnani)
+      /* TS s*/
+      symtable_elem_t *lel = NULL;
+      lel = SymtableFind( (*gel)->local_symtable,  ((TToken*)data.pointer)->string ); 
+      if( lel == NULL ) { // Promene neexistuje
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      /* TS e*/
+      tmpData.value = SymDataTypeToTokenType( lel->dataType ); // Datovy typ ale ve formatu typu tokenu TK_NUM_* (pr TK_INTEGER prevede na TK_NUM_INTEGER - pro snazsi porovnani)
       tmpData.i = i; // Index kde se polozka nachazi v listu
       ListPush( stack, tmpData );
     }
@@ -1080,6 +1261,96 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST ) {
 
   ListDestroy(stack);
   return 1;
+}
+
+//-----------------------------------------------
+// Dodatecne funkce pro praci s Tabulkou Symbolu
+//-----------------------------------------------
+
+int TokenTypeToSymDataType(TTokenType type) {
+  switch(type) {
+    case TK_INTEGER:
+    case TK_NUM_INTEGER:
+      return SYM_DATATYPE_INT;
+    case TK_DOUBLE:
+    case TK_NUM_DOUBLE:
+      return SYM_DATATYPE_DOUBLE;
+    case TK_STRING:
+    case TK_NUM_STRING:
+      return SYM_DATATYPE_STRING;
+    default: 
+      return SYM_DATATYPE_ERROR;
+  }
+}
+int SymDataTypeToTokenType(st_datatype_t type) {
+  switch(type) {
+    case SYM_DATATYPE_INT:
+      return TK_NUM_INTEGER;
+
+    case SYM_DATATYPE_DOUBLE:
+      return TK_NUM_DOUBLE;
+
+    case SYM_DATATYPE_STRING:
+      return TK_NUM_STRING;
+
+    default: 
+      return TK_NA;
+  }
+}
+
+//------------------------------------
+// Vlozeni implicitnich funkci do tabulky symbolu
+//------------------------------------
+
+void SyntaxInitBuildInFunction() {
+  symtable_elem_t *gel = NULL;
+  TListData data;
+
+  // length ( string ) as integer
+  gel = AddElemGlobal(GlobalSymtable, "length");
+  gel->elemType = SYM_TYPE_FUNCTION;
+  gel->declared = 1;
+  gel->defined = 1;
+  gel->listParam = ListInit();
+  data.value = SYM_DATATYPE_STRING;
+  ListPushBack( gel->listParam, data );
+  gel->dataType = SYM_DATATYPE_INT; 
+
+  // substr ( string, integer, integer ) as string
+  gel = AddElemGlobal(GlobalSymtable, "substr");
+  gel->elemType = SYM_TYPE_FUNCTION;
+  gel->declared = 1;
+  gel->defined = 1;
+  gel->listParam = ListInit();
+  data.value = SYM_DATATYPE_STRING;
+  ListPushBack( gel->listParam, data );
+  data.value = SYM_DATATYPE_INT;
+  ListPushBack( gel->listParam, data );
+  data.value = SYM_DATATYPE_INT;
+  ListPushBack( gel->listParam, data );
+  gel->dataType = SYM_DATATYPE_STRING; 
+
+  // asc ( string, integer ) as integer
+  gel = AddElemGlobal(GlobalSymtable, "asc");
+  gel->elemType = SYM_TYPE_FUNCTION;
+  gel->declared = 1;
+  gel->defined = 1;
+  gel->listParam = ListInit();
+  data.value = SYM_DATATYPE_STRING;
+  ListPushBack( gel->listParam, data );
+  data.value = SYM_DATATYPE_INT;
+  ListPushBack( gel->listParam, data );
+  gel->dataType = SYM_DATATYPE_INT; 
+
+  // chr ( integer ) as string 
+  gel = AddElemGlobal(GlobalSymtable, "chr");
+  gel->elemType = SYM_TYPE_FUNCTION;
+  gel->declared = 1;
+  gel->defined = 1;
+  gel->listParam = ListInit();
+  data.value = SYM_DATATYPE_INT;
+  ListPushBack( gel->listParam, data );
+  gel->dataType = SYM_DATATYPE_STRING; 
 }
 
 #endif
