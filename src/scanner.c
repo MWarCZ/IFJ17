@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "scanner.h"
 #include "token.h"
 #include "error.h"
@@ -22,10 +23,13 @@
 #include "conversion.h"
 
 int repeatLastChar = 0;
-TToken* readToken;
+TToken* readToken = NULL;
 int readLastChar;
 unsigned long int readLineNumber = 1;
-TString* readString;
+TString* readString = NULL;
+
+TToken *lastToken = NULL;
+int repeatLastToken = 0;
 
 int CanBeIgnored(char c) {
   char* ignor = "\n\t\r \v";
@@ -38,11 +42,34 @@ int CanBeIgnored(char c) {
   return 0;
 }
 
+void RepeatLastToken() {
+  repeatLastToken = 1;
+}
+
+void ClearScanner() {
+  fprintf(stderr, ">>TOKEN CLEAN\n");
+  TokenDestroy(lastToken);
+  lastToken = NULL;
+  repeatLastToken = 0;
+}
+
 TToken* GetNextToken() {
   if( (readToken=TokenInit())==NULL ) {
     // ERR_INTERNAL
     CallError(ERR_INTERNAL);
     return NULL;
+  }
+
+  if( repeatLastToken ) { // Vratit naposled nacteny token
+    repeatLastToken--;
+
+    *readToken = *lastToken;
+    readToken->string = malloc(strlen(lastToken->string)+1);     
+    strcpy(readToken->string, lastToken->string);   
+
+    // fprintf(stderr, ">RepeatToke:\n"); // DEBUG
+    // PrintToken(readToken);// DEBUG
+    return readToken;
   }
 
   if( (readString = StringInit())==NULL ) {
@@ -136,6 +163,10 @@ TToken* GetNextToken() {
       readToken->type = TK_BRACKET_ROUND_RIGHT;
       break;
     }
+    else if( readLastChar==',' ) {
+      readToken->type = TK_COMMA;
+      break;
+    }
     else if( CanBeIgnored(readLastChar) ) { ; }
     else {
       // ERR_LEX
@@ -145,10 +176,19 @@ TToken* GetNextToken() {
   } while(!ERR_EXIT_STATUS);
 
   readToken->line = readLineNumber;
-  //readToken->string = StringMinClone(readString);
-  //printf("%s\n",readString->string);
-  StringDestroy(readString);
   Convert(readToken);
+
+  /// START Zaloha pro pripadne opakovani tokenu.
+  TokenDestroy(lastToken);
+  lastToken = TokenInit();
+  *lastToken = *readToken; 
+  lastToken->string = StringCopy(readString);
+  /// END
+
+  StringDestroy(readString);
+
+  // PrintToken(readToken);// DEBUG
+
   return readToken;
 }
 
@@ -388,7 +428,8 @@ void State_SpecialChar() {
         break;
       default:
         // ERR_LEX
-        CallError(ERR_LEX);
+        //CallError(ERR_LEX);
+        StringAdd(readString,readLastChar);
         break;
     }
   }
@@ -407,6 +448,9 @@ void State_GreaterThan() {
 void State_LessThan() {
   if( (readLastChar=getchar())=='=' ) {
     readToken->type = TK_LESS_EQUAL;
+  }
+  else if( readLastChar == '>' ) {
+    readToken->type = TK_NOT_EQUAL;
   }
   else {
     readToken->type = TK_LESS;

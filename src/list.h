@@ -17,6 +17,8 @@
  */
 typedef struct TListData {
   int i;
+  int value;//MW
+  void *pointer;//MW
 } TListData;
 
 /**

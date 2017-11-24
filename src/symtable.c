@@ -114,6 +114,7 @@ void SymtableFree(symtable_t *globalTable){
                 SymtableFree(delete->local_symtable);
             }
             if(delete->listParam != NULL) {//MW
+              ListClear(delete->listParam);//MW
               free(delete->listParam);//MW
             }//MW
 

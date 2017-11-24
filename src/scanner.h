@@ -44,10 +44,22 @@ extern unsigned long int readLineNumber;
 int CanBeIgnored(char c);
 
 /**
- * @brief Nacita vstup, ktery prevede na token.
+ * @brief Uvolni z pameti interni promene vznikle pri generovani tokenu. Pouzit pred ukoncenim programu.
+ */
+void ClearScanner();
+
+/**
+ * @brief Nacita vstup, ktery prevede na token. 
+ * Pokud je interne nastaveno (Pomoci funkce RepatLastToken() ) , ze se ma zopakovat vraceni naposled nacteneho tokenu.
+ * tak nedojde k novemu cteni ale vrati se naposledy nacteny token.
  * @return Ukazatel na nove nacteny token.
  */
 TToken* GetNextToken();
+
+/**
+ * @brief Nastavi interne, aby funkce GetNextToken() pri dalsim volani vratila stejny token jako pri predchozim volani.
+ */
+void RepeatLastToken();
 
 //--------------------------
 

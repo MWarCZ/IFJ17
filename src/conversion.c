@@ -54,6 +54,7 @@ TTokenType keywords[] = {
   TK_SHARED,
   TK_STATIC,
   TK_TRUE,
+  TK_MOD
 };
 
 void Convert(TToken *token) {

@@ -74,7 +74,9 @@ char* TokenTypes[] = {
   "TK_MUL", 
   "TK_DIV", 
   "TK_MOD", 
-  "TK_DIV_INT"
+  "TK_DIV_INT",
+  "TK_INT2FLOAT", 
+  "TK_FLOAT2INT" 
 };
 
 void PrintTokenType(TTokenType type) {
@@ -107,10 +109,12 @@ TToken* TokenInit() {
 }
 
 void TokenDestroy(TToken* tkn) {
-  if(tkn->string != NULL) {
-    free(tkn->string);
+  if(tkn != NULL) {
+    if(tkn->string != NULL) {
+      free(tkn->string);
+    }
+    free(tkn);
   }
-  free(tkn);
 }
 
 #endif
