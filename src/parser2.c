@@ -372,6 +372,7 @@ int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
         (*gel) = AddElemGlobal(GlobalSymtable,  (*tkn)->string );
         (*gel)->elemType = SYM_TYPE_FUNCTION;
         (*gel)->dataType = SYM_DATATYPE_VOID;
+        (*gel)->listParam = ListInit();
       }
       else {
         // ERR_SYN
@@ -488,7 +489,7 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
       if( !Syntaxx_DataType(tkn, &((*nodeAST)->node1), &lel ) ) { 
         return 0;
       }
-      if( !Syntaxx_VarDefAssigment(tkn, &((*nodeAST)->node2), gel ) ) {
+      if( !Syntaxx_VarDefAssigment(tkn, &((*nodeAST)->node2), gel, SymDataTypeToTokenType( lel->dataType ) ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_EOL ) { /// eol
@@ -514,12 +515,24 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
   
 }
 
-int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, TTokenType tokenType) {
   (*nodeAST) = InitASTNode(AST_VarDefAssigment); // AST
+  (*nodeAST)->token1 = TokenInit();
+  (*nodeAST)->token1->type = tokenType;
   switch( (*tkn)->type ) {
     case TK_EQUAL: /// =
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( !Syntaxx_Expression(tkn, nodeAST, gel) ) { // TK_EXPRESSION
+        return 0;
+      }
+      // Kontrola zda je mozne priradit vysledek vyrazu do promnene.
+      if( ( (*nodeAST)->token1->type == TK_NUM_INTEGER ) && ( (*nodeAST)->token2->type == TK_NUM_DOUBLE ) ) {
+      }
+      else if( ( (*nodeAST)->token1->type == TK_NUM_DOUBLE ) && ( (*nodeAST)->token2->type == TK_NUM_INTEGER ) ) {
+      }
+      else if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
+        // ERR_COMP
+        CallError(ERR_COMP);
         return 0;
       }
       return 1;
@@ -576,6 +589,8 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
         CallError(ERR_SEM);
         return 0;
       }
+      (*nodeAST)->token2 = TokenInit();
+      (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
       /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
@@ -584,7 +599,22 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_Assignment(tkn, &((*nodeAST)->node1), gel );
+      if( !Syntaxx_Assignment(tkn, &((*nodeAST)->node1), gel ) ) {
+        return 0;
+      }
+      // Kontrola zda je mozne priradit vypocitanou/vracenou hodnotu do promene.
+      if( ( (*nodeAST)->token2->type == TK_NUM_INTEGER) && ( ((*nodeAST)->node1)->token2->type == TK_NUM_DOUBLE ) ) {
+        // integer - double
+      }
+      else if( ( (*nodeAST)->token2->type == TK_NUM_DOUBLE) && ( ((*nodeAST)->node1)->token2->type == TK_NUM_INTEGER ) ) {
+        // double - integer
+      }
+      if( (*nodeAST)->token2->type != ((*nodeAST)->node1)->token2->type ) {
+        // ERR_COMP
+        CallError(ERR_COMP);
+        return 0;
+      }
+      return 1;
       break;
     case TK_DO: /// do
       (*nodeAST)->token1 = (*tkn); /// AST do
@@ -717,11 +747,20 @@ int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **g
 }
 int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_Condition); // AST
+  (*nodeAST)->token1 = TokenInit();
+  (*nodeAST)->token1->type = TK_TRUE; 
   // Expression
   if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
     if( !Syntaxx_Expression(tkn, nodeAST, gel) ) {
       return 0;
     } 
+    // Kontrola zda vysledek vyrazu je pravdivostni hodnota - bool
+    if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
+      // ERR_COMP
+      fprintf(stderr, "Vysledek vyrazu v podmince musi byt true nebo false.\n");
+      CallError(ERR_COMP);
+      return 0;
+    }
     return 1;
   }
   fprintf(stderr, "Condition\n");
@@ -750,6 +789,8 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
         CallError(ERR_SEM);
         return 0;
       }
+      (*nodeAST)->token2 = TokenInit();
+      (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
       /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id | lenght | substr | asc | chr
       (*tkn) = GetNextToken();
@@ -758,7 +799,7 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      if( !Syntaxx_ListInParam(tkn, &((*nodeAST)->node1), gel ) ) {
+      if( !Syntaxx_ListInParam(tkn, &((*nodeAST)->node1), gel, &lel ) ) {
         return 0;
       }
       if( (*tkn)->type != TK_BRACKET_ROUND_RIGHT ) { /// )
@@ -774,14 +815,14 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
   }
   return 0;
 }
-int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, symtable_elem_t **fel) {
   (*nodeAST) = InitASTNode(AST_ListInParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
-      return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel );
+      return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel, fel, 0 ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel, fel, 1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -793,14 +834,42 @@ int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
   }
   
 }
-int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, symtable_elem_t **fel, int indexOfParam) {
+  TListData data; /* TS */
   (*nodeAST) = InitASTNode(AST_InParam); // AST
   switch( (*tkn)->type ) {
     case TK_ID:
     case TK_NUM_INTEGER:
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
-      return Syntaxx_Term(tkn, &((*nodeAST)->node1), gel );
+      if( !Syntaxx_Term(tkn, &((*nodeAST)->node1), gel ) ) {
+        // ERR_SYN
+        CallError(ERR_SYN);
+        return 0;
+      }
+      (*nodeAST)->token2 = TokenInit();
+      (*nodeAST)->token2->type = ((*nodeAST)->node1)->token2->type;
+      if( !ListGet( (*fel)->listParam , indexOfParam, &data ) ) {
+        // ERR_SYN
+        fprintf(stderr, "Bylo zadano vice parametru nez kolik funkce prijima.\n");
+        CallError(ERR_SYN);
+        return 0;
+      }
+      (*nodeAST)->token1 = TokenInit();
+      (*nodeAST)->token1->type = SymDataTypeToTokenType(data.value);
+      // Kontrola zda mohou byt vkladane hodnoty na pozici parametru - kontrola typu promene a vkladane hodnoty
+      if( ( (*nodeAST)->token1->type == TK_NUM_INTEGER ) && ( (*nodeAST)->token2->type == TK_NUM_DOUBLE ) ) {
+        // integer - double
+      }
+      if( ( (*nodeAST)->token1->type == TK_NUM_DOUBLE ) && ( (*nodeAST)->token2->type == TK_NUM_INTEGER ) ) {
+        // double - integer
+      }
+      else if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
+        // ERR_COMP
+        CallError(ERR_COMP);
+        return 0;
+      }
+      return 1;
       break;
     default:
       fprintf(stderr, "InParam\n");
@@ -809,12 +878,12 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   }
   
 }
-int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
+int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, symtable_elem_t **fel, int indexOfParam) {
   (*nodeAST) = InitASTNode(AST_NextInParam); // AST
   switch( (*tkn)->type ) {
     case TK_COMMA: /// ,
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
-      return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel );
+      return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel, fel, indexOfParam ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel, fel, indexOfParam+1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
       return 1;
@@ -827,16 +896,29 @@ int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
   
 }
 int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
-  (void)gel; /* TS TODO*/
+  symtable_elem_t *lel = NULL; /* TS */
   (*nodeAST) = InitASTNode(AST_Term); // AST
   switch( (*tkn)->type ) {
     case TK_ID: /// id
+      /* TS s*/
+      lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
+      if( lel == NULL ) { // promene neexistuje
+        // ERR_SEM
+        CallError(ERR_SEM);
+        return 0;
+      }
+      (*nodeAST)->token2 = TokenInit();
+      (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
+      /* TS e*/
     case TK_NUM_INTEGER: /// int 5
     case TK_NUM_DOUBLE: /// float 2.3
     case TK_NUM_STRING: /// str !"string"
       (*nodeAST)->token1 = (*tkn); /// AST id | int | float | str
+      if( (*tkn)->type != TK_ID ) {
+        (*nodeAST)->token2 = TokenInit();
+        (*nodeAST)->token2->type = (*tkn)->type;
+      }
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       return 1;
       break;
     default:
@@ -1210,6 +1292,11 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         tmpData.value = ( IsOperatorCompare( ((TToken*)data.pointer)->type) )? TK_TRUE : x1.value;
         tmpData.i = i;
         ListPush( stack, tmpData );
+      }
+      else if ( (((TToken*)data.pointer)->type == TK_DIV_INT ) && ( x1.value != TK_NUM_INTEGER || x2.value == TK_NUM_INTEGER ) ) {
+        // ERR_COMP
+        CallError(ERR_COMP);
+        break;
       }
       else if( x1.value == TK_NUM_INTEGER && x2.value == TK_NUM_DOUBLE ) { // Na vrcholu zasobniku je double a za nim nasleduje int ( v postFixu: int,double,operator )
         tmpData.pointer = TokenInit();
