@@ -602,8 +602,8 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       if( !Syntaxx_Assignment(tkn, &((*nodeAST)->node1), gel ) ) {
         return 0;
       }
-      PrintToken((*nodeAST)->token2);
-      PrintToken(((*nodeAST)->node1)->token2);
+      // PrintToken((*nodeAST)->token2); // DEBUG
+      // PrintToken(((*nodeAST)->node1)->token2); // DEBUG
       // Kontrola zda je mozne priradit vypocitanou/vracenou hodnotu do promene.
       if( ( (*nodeAST)->token2->type == TK_NUM_INTEGER) && ( ((*nodeAST)->node1)->token2->type == TK_NUM_DOUBLE ) ) {
         // integer - double

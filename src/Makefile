@@ -11,11 +11,11 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g -I .
 
-BUILD_DIR=build/
+BUILD_DIR=
 SOURCE=$(wildcard *c)
 OBJECTS:=$(SOURCE:.c=.o)
 OBJECTS:=$(addprefix $(BUILD_DIR),$(OBJECTS))
-RUN_FILE_NAME=run
+RUN_FILE_NAME=ifj17
 
 all: build
 

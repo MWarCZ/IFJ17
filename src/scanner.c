@@ -47,7 +47,7 @@ void RepeatLastToken() {
 }
 
 void ClearScanner() {
-  fprintf(stderr, ">>TOKEN CLEAN\n");
+  // fprintf(stderr, ">>TOKEN CLEAN\n");
   TokenDestroy(lastToken);
   lastToken = NULL;
   repeatLastToken = 0;

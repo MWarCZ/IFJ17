@@ -12,6 +12,8 @@
 
 #include "main.h"
 #include "sample.h"
+#include "parser2.h"
+#include "error.h"
 
 /**
  * @brief Hlavni funkce main.
@@ -20,9 +22,10 @@
  * @return Vraci 0 pokud aplikace proběhla vpořádku.
  */
 int main() {
-	SayHelloWorld();
 
-	return 0;
+  SyntaxStartParse();
+
+	return ERR_EXIT_STATUS;
 }
 
 // Soubor: src/main.c
