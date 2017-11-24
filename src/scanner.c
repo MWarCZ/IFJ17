@@ -67,8 +67,8 @@ TToken* GetNextToken() {
     readToken->string = malloc(strlen(lastToken->string)+1);     
     strcpy(readToken->string, lastToken->string);   
 
-    //fprintf(stderr, ">RepeatToke:\n"); // DEBUG
-    //PrintToken(readToken);// DEBUG
+    // fprintf(stderr, ">RepeatToke:\n"); // DEBUG
+    // PrintToken(readToken);// DEBUG
     return readToken;
   }
 
@@ -187,7 +187,7 @@ TToken* GetNextToken() {
 
   StringDestroy(readString);
 
-  //PrintToken(readToken);// DEBUG
+  // PrintToken(readToken);// DEBUG
 
   return readToken;
 }
@@ -448,6 +448,9 @@ void State_GreaterThan() {
 void State_LessThan() {
   if( (readLastChar=getchar())=='=' ) {
     readToken->type = TK_LESS_EQUAL;
+  }
+  else if( readLastChar == '>' ) {
+    readToken->type = TK_NOT_EQUAL;
   }
   else {
     readToken->type = TK_LESS;

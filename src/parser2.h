@@ -22,35 +22,40 @@ int SyntaxStartParse();
 // nodeAST je aktualni uzel, ktery je potreba teprve vytvorit/inicializovat.
 int Syntaxx_Program(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_ListDecDef(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST);
+int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow);
+int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow);
+int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow, int indexOfParam);
+int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow, int indexOfParam);
+int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **elem);
 int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_ScopeDef(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST);
+int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 int Syntaxx_ScopeEnd(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_ScopeAfter(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST);
-int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST);
+int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 
 // nodeAST je nadrazeny uzel nikoliv uzel Expression.
 // pr1: AST_ListExpression 
 // pr2: AST_Condition
-int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST);
+int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 
-int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST );
+int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtable_elem_t **gel );
+
+int TokenTypeToSymDataType(TTokenType type);
+int SymDataTypeToTokenType(st_datatype_t type);
+
+void SyntaxInitBuildInFunction();
 
 #endif
 
