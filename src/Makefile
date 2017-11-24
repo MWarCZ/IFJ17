@@ -20,7 +20,7 @@ RUN_FILE_NAME=ifj17
 all: build
 
 build_dir:
-	mkdir -p $(BUILD_DIR);
+	mkdir -p $(BUILD_DIR) || true;
 
 build: build_dir $(OBJECTS) $(BUILD_DIR)$(RUN_FILE_NAME)
 
