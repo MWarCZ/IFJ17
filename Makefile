@@ -30,7 +30,7 @@ RUN_FILE_NAME=run
 # aaa
 ARCHIVE_DIR=archive/
 
-all: get-deps build
+all: build
 	@echo $@
 
 # Stahne zavislosti potrebne ke kompilaci.
@@ -41,7 +41,7 @@ get-unittest:
 	cd $(TEST_DIR) && $(MAKE) get-deps
 
 # Spusti zkompilovani unit testu.
-test-build: build
+test-build: get-unittest build
 	cd $(TEST_DIR) && $(MAKE) \
 		BUILD_DIR=../$(TEST_BUILD_DIR) \
 		TEST_FRAMEWORK_DIR=../$(TEST_FRAMEWORK_DIR) \
@@ -77,13 +77,17 @@ doc:
 
 # !!! Zatim neni dokonceno
 archive:
+	printf "\n===== ARCHIVE =====\n\n"
 	rm -Rf $(ARCHIVE_DIR)
 	cp -R $(SOURCE_DIR) $(ARCHIVE_DIR)
+	cp rozdeleni $(ARCHIVE_DIR)rozdeleni | true
+	cd $(ARCHIVE_DIR) && zip xvalka05.zip *
 
 # Vymaze vsechny slozky a soubory, ktere neni potreba uchovavat v repozitari
 clean:
 	printf "\n===== CLEAN =====\n\n"
 	rm -f -R "$(DOXYGEN_DIR)"
+	rm -f -R "$(ARCHIVE_DIR)"
 	@cd $(SOURCE_DIR) && $(MAKE) clean \
 		BUILD_DIR=../$(BUILD_DIR) \
 		RUN_FILE_NAME=$(RUN_FILE_NAME)
