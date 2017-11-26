@@ -19,6 +19,7 @@
 TATSNode* InitASTNode(TATSNodeType type) {
   TATSNode *node = NULL;
   if( (node = malloc(sizeof(TATSNode)) ) == NULL ) {
+    printf("ERR AST malloc \n");
     return NULL;
   }
   node->type = type;
@@ -73,6 +74,38 @@ void DestroyASTNodeSafely(TATSNode **node) {
   DestroyASTNodeSafely( &((*node)->node4) );
   free( (*node) );
   (*node) = NULL;
+}
+
+void PrintASTNodeType(TATSNodeType type) {
+  static char* xxx[] = {
+  "AST_NA",
+  "AST_Program",
+  "AST_ListDecDef",
+  "AST_FunctionHead",
+  "AST_ListParam",
+  "AST_Param",
+  "AST_NextParam",
+  "AST_DataType",
+  "AST_FunctionEnd",
+  "AST_ScopeDef",
+  "AST_ScopeHead",
+  "AST_ScopeEnd",
+  "AST_ScopeAfter",
+  "AST_FunctionBody",
+  "AST_ListVarDef",
+  "AST_VarDefAssigment",
+  "AST_ListCommand",
+  "AST_Command",
+  "AST_ListExpression",
+  "AST_Condition",
+  "AST_Assignment",
+  "AST_ListInParam",
+  "AST_InParam",
+  "AST_NextInParam",
+  "AST_Term",
+  "AST_Expression"
+  };
+  fprintf(stderr,"NodeTyp: %s\n", xxx[type] );
 }
 
 #endif

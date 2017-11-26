@@ -53,8 +53,8 @@ int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 
 int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtable_elem_t **gel );
 
-int TokenTypeToSymDataType(TTokenType type);
-int SymDataTypeToTokenType(st_datatype_t type);
+st_datatype_t TokenTypeToSymDataType(TTokenType type);
+TTokenType SymDataTypeToTokenType(st_datatype_t type);
 
 void SyntaxInitBuildInFunction();
 
