@@ -23,6 +23,7 @@
 #include "list.h"
 #include "ast.h"
 #include "parser2.h"
+//#include "generator.h"
 
 symtable_t *GlobalSymtable = NULL; /* TS */ // Globalni tabulka symbolu alias Tabulka fuknci
 
@@ -49,6 +50,7 @@ int SyntaxStartParse() {
   (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
 
   if( Syntaxx_Program(tkn, &rootAST ) ) {
+    //GeneratorStart(&rootAST); // GENERATOR
   }
   else if( ERR_EXIT_STATUS ) {
     // pokud exit status neni OK tak doslo k jinemu typu chyby jiz drive
@@ -57,6 +59,7 @@ int SyntaxStartParse() {
     // ERR_SYN
     CallError(ERR_SYN);
   }
+
 
   TokenDestroy( (*tkn) );
   DestroyASTNodeSafely(&rootAST); // AST
@@ -253,6 +256,8 @@ int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int i
             return 0;
           }
         }
+        (*nodeAST)->token2 = TokenInit();
+        (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
       }
       else { // je deklarace - takze musime nějak ziskat datovy typ :D
         // pouzijeme jako prostrednika gel, funkce dostava totiz navratovy typ az nakonec, takze v dobe parametru je mozne jej vyuzit jako docasnou promnenou. (gel->dataType)
@@ -712,6 +717,12 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       (*tkn) = GetNextToken();
       //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( !Syntaxx_Expression(tkn, nodeAST, gel) ) { 
+        return 0;
+      }
+      // Kontrola zda je mozne priradit vypocitanou/vracenou hodnotu do promene.
+      if( (*nodeAST)->token2->type != SymDataTypeToTokenType( (*gel)->dataType ) ) {
+        // ERR_COMP
+        CallError(ERR_COMP);
         return 0;
       }
       return 1;
@@ -1282,6 +1293,7 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
       ListPop( stack, &x2);
       ListPop( stack, &x1);
 
+      /// Chyba pokud neni: string + string, stirng > string, string = strng, ...
       if( ( x1.value == TK_NUM_STRING && x2.value == TK_NUM_STRING ) && ( ((TToken*)data.pointer)->type != TK_PLUS  && !IsOperatorCompare(((TToken*)data.pointer)->type) ) ) {
         // string + string OK 
         // string compare string OK
@@ -1290,16 +1302,13 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         CallError(ERR_COMP);
         break;
       }
-      else if( x1.value == x2.value ) { // Stejne datove typy
-        tmpData.value = ( IsOperatorCompare( ((TToken*)data.pointer)->type) )? TK_TRUE : x1.value;
-        tmpData.i = i;
-        ListPush( stack, tmpData );
-      }
+      /// Chyba pokud neni: int \ int = int
       else if ( (((TToken*)data.pointer)->type == TK_DIV_INT ) && ( x1.value != TK_NUM_INTEGER || x2.value == TK_NUM_INTEGER ) ) {
         // ERR_COMP
         CallError(ERR_COMP);
         break;
       }
+      /// Prevod int na double: int + double = double, int > double = bool
       else if( x1.value == TK_NUM_INTEGER && x2.value == TK_NUM_DOUBLE ) { // Na vrcholu zasobniku je double a za nim nasleduje int ( v postFixu: int,double,operator )
         tmpData.pointer = TokenInit();
         ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT; 
@@ -1310,6 +1319,7 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         tmpData.i = i;
         ListPush( stack, tmpData );
       }
+      /// Prevod int na double: double + int = double, double > int = bool
       else if( x1.value == TK_NUM_DOUBLE && x2.value == TK_NUM_INTEGER ) { // Na vrcholu zasobniku je int a za nim nasleduje double ( v postFixu: double,int,operator )
         tmpData.pointer = TokenInit();
         ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT;
@@ -1320,10 +1330,35 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         tmpData.i = i;
         ListPush( stack, tmpData );
       }
+      /// int / int = double
+      else if( ( ((TToken*)data.pointer)->type == TK_DIV ) && ( x1.value == TK_NUM_INTEGER && x2.value == TK_NUM_INTEGER ) ) {
+        // Prevede obe cisla na double a nasledne muze projit deleni
+        tmpData.pointer = TokenInit();
+        ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT; 
+        i++;
+        ListInsert( (*listPostFix), x1.i+1 , tmpData ); // Vlozim Int2Float do listu PostFix vyrazu na pozici za prevadenou hodnotu
+
+        tmpData.pointer = TokenInit();
+        ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT;
+        i++;
+        ListInsert( (*listPostFix), x2.i+1 , tmpData ); // Vlozim Int2Float do listu PostFix vyrazu na pozici za prevadenou hodnotu
+
+        tmpData.pointer = NULL;
+        tmpData.value = TK_NUM_DOUBLE;
+        tmpData.i = i;
+        ListPush( stack, tmpData );
+        
+      }
+      /// Chyba kdyz: int + string, double + string, string + int, string + double
       else if( ( (x1.value == TK_NUM_DOUBLE || x1.value == TK_NUM_INTEGER) && x2.value == TK_NUM_STRING ) || ( x1.value == TK_NUM_STRING && (x2.value == TK_NUM_DOUBLE || x2.value == TK_NUM_INTEGER) ) ) {
         // ERR_COMP
         CallError(ERR_COMP);
         break;
+      }
+      else if( x1.value == x2.value ) { // Stejne datove typy
+        tmpData.value = ( IsOperatorCompare( ((TToken*)data.pointer)->type) )? TK_TRUE : x1.value;
+        tmpData.i = i;
+        ListPush( stack, tmpData );
       }
       else {
         // ERR_COMP
@@ -1356,7 +1391,7 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
 // Dodatecne funkce pro praci s Tabulkou Symbolu
 //-----------------------------------------------
 
-int TokenTypeToSymDataType(TTokenType type) {
+st_datatype_t TokenTypeToSymDataType(TTokenType type) {
   switch(type) {
     case TK_INTEGER:
     case TK_NUM_INTEGER:
@@ -1371,7 +1406,7 @@ int TokenTypeToSymDataType(TTokenType type) {
       return SYM_DATATYPE_ERROR;
   }
 }
-int SymDataTypeToTokenType(st_datatype_t type) {
+TTokenType SymDataTypeToTokenType(st_datatype_t type) {
   switch(type) {
     case SYM_DATATYPE_INT:
       return TK_NUM_INTEGER;

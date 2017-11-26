@@ -58,6 +58,8 @@ TATSNode* InitASTNode(TATSNodeType type);
 void DestroyASTNode(TATSNode *node);
 void DestroyASTNodeSafely(TATSNode **node);
 
+void PrintASTNodeType(TATSNodeType type) ;
+
 #endif
 
 // Soubor: src/ast.h
