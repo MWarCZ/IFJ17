@@ -877,6 +877,14 @@ int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel,
       return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel, fel, 0 ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel, fel, 1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
+
+      if( (*fel)->listParam->count > 0 ) {
+        // ERR_SYN
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Bylo zadano mene parametru nez kolik funkce prijima.\n");
+        return 0;
+      }
+
       return 1;
       break;
     default:
@@ -911,7 +919,7 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, sym
       if( ( (*nodeAST)->token1->type == TK_NUM_INTEGER ) && ( (*nodeAST)->token2->type == TK_NUM_DOUBLE ) ) {
         // integer - double
       }
-      if( ( (*nodeAST)->token1->type == TK_NUM_DOUBLE ) && ( (*nodeAST)->token2->type == TK_NUM_INTEGER ) ) {
+      else if( ( (*nodeAST)->token1->type == TK_NUM_DOUBLE ) && ( (*nodeAST)->token2->type == TK_NUM_INTEGER ) ) {
         // double - integer
       }
       else if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
@@ -935,9 +943,18 @@ int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel,
   switch( (*tkn)->type ) {
     case TK_COMMA: /// ,
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+
       return Syntaxx_InParam(tkn, &((*nodeAST)->node1), gel, fel, indexOfParam ) && Syntaxx_NextInParam(tkn, &((*nodeAST)->node2), gel, fel, indexOfParam+1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
+
+      if( (*fel)->listParam->count > indexOfParam ) {
+        // ERR_SYN
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Bylo zadano mene parametru nez kolik funkce prijima.\n");
+        return 0;
+      }
+
       return 1;
       break;
     default:
