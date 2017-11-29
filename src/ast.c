@@ -25,6 +25,7 @@ TATSNode* InitASTNode(TATSNodeType type) {
   node->type = type;
   node->token1 = NULL;
   node->token2 = NULL;
+  node->token3 = NULL;
   node->listPostFix = NULL;
   node->node1 = NULL;
   node->node2 = NULL;
@@ -59,6 +60,10 @@ void DestroyASTNodeSafely(TATSNode **node) {
   if( (*node)->token2 != NULL ) {
     TokenDestroy( (*node)->token2 );
     (*node)->token2 = NULL;
+  }
+  if( (*node)->token3 != NULL ) {
+    TokenDestroy( (*node)->token3 );
+    (*node)->token3 = NULL;
   }
   if( (*node)->listPostFix != NULL ) {
     TListData data;
