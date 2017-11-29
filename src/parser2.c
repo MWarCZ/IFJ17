@@ -1165,6 +1165,8 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
   TTokenType lastToken = TK_BRACKET_ROUND_LEFT;
   int NumberOfOperand = 0; // Pocet Operandu tj TK_ID,TK_NUM_*
   int NumberOfOperator = 0; // Pocet Operatoru tj TK_PLUS, ...
+  TTokenType lastOperatorTokenType = TK_PLUS; // Slouzi jen k detekci deleni nulou
+
   do {
 
     if( CanBeTokenInExpression( (*tkn)->type ) ) {
@@ -1190,6 +1192,30 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
       NumberOfOperand++;
     }
     else if( (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
+
+      /// DIV ZERO - start
+      if( lastOperatorTokenType == TK_DIV || lastOperatorTokenType == TK_DIV_INT ) {
+        if( (*tkn)->type == TK_NUM_INTEGER ) {
+          if( (*tkn)->data.integerValue == 0 ) {
+            /// ERR_SEM_OTHER
+            PrintLineErr( (*tkn) );
+            fprintf(stderr, "Deleni nulou.\n" );
+            CallError(ERR_SEM_OTHER);
+            break;
+          }
+        }
+        else if( (*tkn)->type == TK_NUM_DOUBLE ) {
+          if( (*tkn)->data.doubleValue == 0.0 ) {
+            /// ERR_SEM_OTHER
+            PrintLineErr( (*tkn) );
+            fprintf(stderr, "Deleni nulou\n" );
+            CallError(ERR_SEM_OTHER);
+            break;
+          }
+        }
+      }
+      /// DIV ZERO - end
+      
       TListData data;
       data.pointer = (*tkn);
       ListPushBack(ListPostFix, data);
@@ -1202,6 +1228,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
     }
     else if( IsOperator( (*tkn)->type ) ) {
       // Podle priority operatoru zpracuj operatory
+      lastOperatorTokenType = (*tkn)->type;
       TListData data;
       while( ListFront(StackOperator, &data) && !CanBeOperatorPush( (*tkn)->type, ( (TToken*)data.pointer)->type ) ) {
         ListPushBack(ListPostFix, data);
@@ -1336,6 +1363,7 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
       ListPush( stack, tmpData );
     }
     else if( IsOperator( ((TToken*)data.pointer)->type ) ) {
+      
       TListData x1;
       TListData x2;
       ListPop( stack, &x2);
