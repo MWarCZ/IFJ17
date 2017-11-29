@@ -727,8 +727,10 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       }
       /* TS e*/
       (*nodeAST)->token2 = (*tkn); /// AST input id
+      (*nodeAST)->token3 = TokenInit();
+      (*nodeAST)->token3->type = SymDataTypeToTokenType( lel->dataType ); 
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+
       return 1;
       break;
     case TK_PRINT: /// print
@@ -1025,7 +1027,7 @@ int PriorityOperator(TTokenType type) {
     case TK_MUL:
     case TK_DIV:
       return 1;
-    case TK_MOD:
+    //case TK_MOD:
     case TK_DIV_INT:
       return 2;
     case TK_LESS: 
@@ -1055,7 +1057,7 @@ int IsOperator(TTokenType type) {
     case TK_MINUS:
     case TK_MUL:
     case TK_DIV:
-    case TK_MOD:
+    //case TK_MOD:
     case TK_DIV_INT:
     case TK_LESS: 
     case TK_LESS_EQUAL: 
@@ -1100,7 +1102,7 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
         case TK_MINUS:
         case TK_MUL:
         case TK_DIV:
-        case TK_MOD:
+        //case TK_MOD:
         case TK_DIV_INT:
         case TK_BRACKET_ROUND_RIGHT:
         case TK_LESS: 
@@ -1118,7 +1120,7 @@ int CanBeTokenAfterToken(TTokenType now, TTokenType last) {
     case TK_MINUS:
     case TK_MUL:
     case TK_DIV:
-    case TK_MOD:
+    //case TK_MOD:
     case TK_DIV_INT:
     case TK_LESS: 
     case TK_LESS_EQUAL: 
@@ -1154,7 +1156,7 @@ int CanBeTokenInExpression(TTokenType type) {
     case TK_MINUS:
     case TK_MUL:
     case TK_DIV:
-    case TK_MOD:
+    //case TK_MOD:
     case TK_DIV_INT:
       return 1;
       break;
@@ -1398,7 +1400,7 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         break;
       }
       /// Chyba pokud neni: int \ int = int
-      else if ( (((TToken*)data.pointer)->type == TK_DIV_INT ) && ( x1.value != TK_NUM_INTEGER || x2.value == TK_NUM_INTEGER ) ) {
+      else if ( (((TToken*)data.pointer)->type == TK_DIV_INT ) && ( x1.value != TK_NUM_INTEGER || x2.value != TK_NUM_INTEGER ) ) {
         // ERR_COMP
         PrintLineErr( ((TToken*)data.pointer) );
         fprintf(stderr, "Celociselne deleni je mozne provadet jen s datovym typem integer.\n");
@@ -1438,7 +1440,7 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         tmpData.pointer = TokenInit();
         ((TToken*)tmpData.pointer)->type = TK_INT2FLOAT;
         i++;
-        ListInsert( (*listPostFix), x2.i+1 , tmpData ); // Vlozim Int2Float do listu PostFix vyrazu na pozici za prevadenou hodnotu
+        ListInsert( (*listPostFix), x2.i+2 , tmpData ); // Vlozim Int2Float do listu PostFix vyrazu na pozici za prevadenou hodnotu
 
         tmpData.pointer = NULL;
         tmpData.value = TK_NUM_DOUBLE;
