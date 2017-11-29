@@ -27,6 +27,7 @@
 
 symtable_t *GlobalSymtable = NULL; /* TS */ // Globalni tabulka symbolu alias Tabulka fuknci
 
+
 // Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
   do {
@@ -57,6 +58,7 @@ int SyntaxStartParse() {
   }
   else { // Doslko konkretne k syntakticke chybe
     // ERR_SYN
+    PrintLineErr( (*tkn) );
     CallError(ERR_SYN);
   }
 
@@ -131,6 +133,7 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel
       if( isDeclareNow) {
         if( (*gel)->declared ) {
           // ERR_SEM
+          PrintLineErr( (*tkn) );
           fprintf(stderr, "Funkce byla jiz drive deklarovana.\n");
           CallError(ERR_SEM);
           return 0;
@@ -140,6 +143,7 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel
       else {
         if( (*gel)->defined ) {
           // ERR_SEM
+          PrintLineErr( (*tkn) );
           fprintf(stderr, "Funkce byla jiz drive definovana.\n");
           CallError(ERR_SEM);
           return 0;
@@ -207,6 +211,8 @@ int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int i
       lel = SymtableFind( GlobalSymtable,  (*tkn)->string ); 
       if( lel != NULL ) { // Pokud je id nazev existujici funkce tak je to chyba
         // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "%s neni nazev existujici funkce.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -218,6 +224,7 @@ int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int i
         }
         else {
           // ERR_SEM
+          PrintLineErr( (*tkn) );
           fprintf(stderr, "Dublicitni nazev parametru.\n");
           CallError(ERR_SEM);
           return 0;
@@ -246,12 +253,15 @@ int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int i
           if( !ListGet( (*gel)->listParam, indexOfParam, &data ) ) { 
             // List parametru je kradsi nez prave nacitany seznam parametru
             // ERR_SEM
+            PrintLineErr( (*tkn) );
             fprintf(stderr, "List parametru v declaraci a definici nejsou stejne dlouhe.\n");
             CallError(ERR_SEM);
             return 0;
           }
           if( (st_datatype_t)data.value != lel->dataType ) { // datove typy parametru nejsou shodne
             // ERR_SEM
+            PrintLineErr( (*tkn) );
+            fprintf(stderr, "Datove typy v declaraci a v definici nejsou stejne.\n");
             CallError(ERR_SEM);
             return 0;
           }
@@ -272,12 +282,15 @@ int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int i
           if( !ListGet( (*gel)->listParam, indexOfParam, &data ) ) { 
             // List parametru je kradsi nez prave nacitany seznam parametru
             // ERR_SEM
+            PrintLineErr( (*tkn) );
             fprintf(stderr, "List parametru v declaraci a definici nejsou stejne dlouhe.\n");
             CallError(ERR_SEM);
             return 0;
           }
           if( (st_datatype_t)data.value != (*gel)->dataType ) { // datove typy parametru nejsou shodne
             // ERR_SEM
+            PrintLineErr( (*tkn) );
+            fprintf(stderr, "Datove typy v declaraci a definici nejsou shodne.\n");
             CallError(ERR_SEM);
             return 0;
           }
@@ -381,7 +394,8 @@ int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       }
       else {
         // ERR_SYN
-        CallError(ERR_SYN);
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Opakovana definice scope.\n");
         return 0;
       }
       /* TS e*/
@@ -469,6 +483,8 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
       lel = SymtableFind( GlobalSymtable,  (*tkn)->string ); 
       if( lel != NULL ) { // Nazev promene je stejny jako jmeno existujici funkce
         // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Nazev promene '%s' je stejny jako jmeno existujici funkce.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -479,7 +495,8 @@ int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
       }
       else {
         // ERR_SEM
-        fprintf(stderr, "Dublicitni nazev promene.\n");
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Dublicitni nazev promene '%s'.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -537,6 +554,8 @@ int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **
       }
       else if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
         // ERR_COMP
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Promnena je jineho datoveho typu nez vysledny vyraz.\n");
         CallError(ERR_COMP);
         return 0;
       }
@@ -591,6 +610,8 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
       if( lel == NULL ) { // Nejze priradit do promene ktera neexistuje
         // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Promena '%s' neexistuje.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -618,6 +639,8 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       }
       else if( (*nodeAST)->token2->type != ((*nodeAST)->node1)->token2->type ) {
         // ERR_COMP
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Promnena je jineho datoveho typu nez vysledny vyraz.\n");
         CallError(ERR_COMP);
         return 0;
       }
@@ -697,6 +720,8 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
       if( lel == NULL ) { // Nelze nacitat do promene ktera neexistuje
         // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Prmonena '%s' neexistuje.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -709,19 +734,30 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
     case TK_PRINT: /// print
       (*nodeAST)->token1 = (*tkn); /// AST print
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+
       return Syntaxx_ListExpression(tkn, &((*nodeAST)->node1), gel );
       break;
     case TK_RETURN: /// return
       (*nodeAST)->token1 = (*tkn); /// AST return
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+
       if( !Syntaxx_Expression(tkn, nodeAST, gel) ) { 
         return 0;
       }
+      (*nodeAST)->token3 = TokenInit();
+      (*nodeAST)->token3->type = SymDataTypeToTokenType( (*gel)->dataType );
+
       // Kontrola zda je mozne priradit vypocitanou/vracenou hodnotu do promene.
-      if( (*nodeAST)->token2->type != SymDataTypeToTokenType( (*gel)->dataType ) ) {
+      if( (*nodeAST)->token2->type == TK_NUM_INTEGER && SymDataTypeToTokenType( (*gel)->dataType ) == TK_NUM_DOUBLE ) {
+        // integer double
+      }
+      else if( (*nodeAST)->token2->type == TK_NUM_DOUBLE && SymDataTypeToTokenType( (*gel)->dataType ) == TK_NUM_INTEGER ) {
+        // double integer
+      }
+      else if( (*nodeAST)->token2->type != SymDataTypeToTokenType( (*gel)->dataType ) ) {
         // ERR_COMP
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Datovy typ vraceneho vysledneho vyrazu je jiny nez datovy typ funkce.\n");
         CallError(ERR_COMP);
         return 0;
       }
@@ -770,6 +806,7 @@ int Syntaxx_Condition(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
     // Kontrola zda vysledek vyrazu je pravdivostni hodnota - bool
     if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
       // ERR_COMP
+      PrintLineErr( (*tkn) );
       fprintf(stderr, "Vysledek vyrazu v podmince musi byt true nebo false.\n");
       CallError(ERR_COMP);
       return 0;
@@ -799,6 +836,8 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
       lel = SymtableFind( GlobalSymtable,  (*tkn)->string ); 
       if( lel == NULL ) { // ID musi byt funkce. Muzes volat jen funkce ktere existuji.
         // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Funkce '%s' neexistuje.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -856,16 +895,14 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, sym
     case TK_NUM_DOUBLE:
     case TK_NUM_STRING:
       if( !Syntaxx_Term(tkn, &((*nodeAST)->node1), gel ) ) {
-        // ERR_SYN
-        CallError(ERR_SYN);
         return 0;
       }
       (*nodeAST)->token2 = TokenInit();
       (*nodeAST)->token2->type = ((*nodeAST)->node1)->token2->type;
       if( !ListGet( (*fel)->listParam , indexOfParam, &data ) ) {
         // ERR_SYN
+        PrintLineErr( (*tkn) );
         fprintf(stderr, "Bylo zadano vice parametru nez kolik funkce prijima.\n");
-        CallError(ERR_SYN);
         return 0;
       }
       (*nodeAST)->token1 = TokenInit();
@@ -879,6 +916,8 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, sym
       }
       else if( (*nodeAST)->token1->type != (*nodeAST)->token2->type ) {
         // ERR_COMP
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Parametr je jineho datoveho typu, nez ktery funkce ocekava.\n");
         CallError(ERR_COMP);
         return 0;
       }
@@ -917,6 +956,8 @@ int Syntaxx_Term(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       lel = SymtableFind( (*gel)->local_symtable,  (*tkn)->string ); 
       if( lel == NULL ) { // promene neexistuje
         // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Promnena '%s' neexistuje.\n", (*tkn)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -1176,6 +1217,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
         if( !ListPop(StackOperator, &data) ) {
           // Pokud zasobnik op Neobsahuje '(' 
           // ERR_SYN
+          PrintLineErr( (*tkn) );
           fprintf(stderr, ">Expression: Vyraz obsahuje prebytecnou zavorku ')'\n");
           CallError(ERR_SYN);
           break;
@@ -1196,6 +1238,7 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
       while( ListPop(StackOperator, &data) ) {
         if( ((TToken*)data.pointer)->type == TK_BRACKET_ROUND_LEFT ) {
           // ERR_SYN
+          PrintLineErr( (*tkn) );
           fprintf(stderr, ">Expression: Neocekavana zavorka '('.\n");
           CallError(ERR_SYN);
           break;
@@ -1211,15 +1254,18 @@ int Syntaxx_Expression( TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel)
   } while(!ERR_EXIT_STATUS);
 
   if( returnValue && NumberOfOperand != (NumberOfOperator + 1) ) {
+    PrintLineErr( (*tkn) );
     fprintf(stderr, ">Expression: Na konci vyrazu je operator.\n");
     CallError(ERR_SYN);
   }
 
   if( returnValue && ListEmpty(ListPostFix) ) { // Pokud je vystupni Vyraz prazdny, tak neexistoval
+    PrintLineErr( (*tkn) );
     fprintf(stderr, ">Expression: Nebyl zadan vyraz.\n");
     CallError(ERR_SYN);
   }
   if( returnValue && !ListEmpty(StackOperator) ) {
+    PrintLineErr( (*tkn) );
     fprintf(stderr, ">Expression: Nespravny vyraz zkontrolujte pocet operandu a operatoru.\n");
     CallError(ERR_SYN);
   }
@@ -1274,6 +1320,8 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
       lel = SymtableFind( (*gel)->local_symtable,  ((TToken*)data.pointer)->string ); 
       if( lel == NULL ) { // Promene neexistuje
         // ERR_SEM
+        PrintLineErr( ((TToken*)data.pointer) );
+        fprintf(stderr, "Promena '%s' neexistuje\n",((TToken*)data.pointer)->string );
         CallError(ERR_SEM);
         return 0;
       }
@@ -1299,12 +1347,16 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
         // string compare string OK
         // jinak chyba
         // ERR_COMP
+        PrintLineErr( ((TToken*)data.pointer) );
+        fprintf(stderr, "Mezi datovym typem string jsou povoleny operace +, <, >, <>, =\n" );
         CallError(ERR_COMP);
         break;
       }
       /// Chyba pokud neni: int \ int = int
       else if ( (((TToken*)data.pointer)->type == TK_DIV_INT ) && ( x1.value != TK_NUM_INTEGER || x2.value == TK_NUM_INTEGER ) ) {
         // ERR_COMP
+        PrintLineErr( ((TToken*)data.pointer) );
+        fprintf(stderr, "Celociselne deleni je mozne provadet jen s datovym typem integer.\n");
         CallError(ERR_COMP);
         break;
       }
@@ -1352,6 +1404,8 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
       /// Chyba kdyz: int + string, double + string, string + int, string + double
       else if( ( (x1.value == TK_NUM_DOUBLE || x1.value == TK_NUM_INTEGER) && x2.value == TK_NUM_STRING ) || ( x1.value == TK_NUM_STRING && (x2.value == TK_NUM_DOUBLE || x2.value == TK_NUM_INTEGER) ) ) {
         // ERR_COMP
+        PrintLineErr( ((TToken*)data.pointer) );
+        fprintf(stderr, "Nelze kombinovat datovy typ string s jinym datovym typem.\n" );
         CallError(ERR_COMP);
         break;
       }
@@ -1362,6 +1416,8 @@ int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtabl
       }
       else {
         // ERR_COMP
+        PrintLineErr( ((TToken*)data.pointer) );
+        fprintf(stderr, "Vzraz obsahuje neplatne informace.\n");
         CallError(ERR_COMP);
         break;
       }
