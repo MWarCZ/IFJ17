@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "generator.h"
 #include "ast.h"
 #include "token.h"
@@ -100,18 +101,35 @@ void GPrint_PushString(char* value) {
 }
 
 //I/O
-/**void GPrint_Read(char* name){
-
+void GPrint_Read(){
+  printf("read ...\n");
+  /*if(token2->type == TK_NUM_STRING){
+    printf("read LF@%s string",token1->string);
+  }
+  else if(token2->type == TK_NUM_INTEGER){
+    printf("read LF@%s int\n",token1->string);
+  }
+  else if(token2->type == TK_NUM_DOUBLE){
+    printf("read LF@%s float\n",token1->string);
+  }
+  else{
+    printf("Error?\n");
+  }*/
 }
-void GPrint_WriteInt(int value){
 
+void GPrint_ConverseResult(TTokenType varType){
+  if(varType == TK_NUM_DOUBLE){
+    printf("int2floats\n");
+  }
+  else{
+    printf("float2ints\n");
+  }
 }
-void GPrint_WriteDouble(double value){
 
+void GPrint_Write(){
+  printf("WRITE\n");
 }
-void GPrint_WriteString(char* value){
-  
-}*/
+
 //-------------
 //
 //-------------
@@ -122,9 +140,9 @@ void GeneratorStart(TATSNode **nodeAST) {
 }
 
 void Generator_Program(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_Program\n");
+  //fprintf(stderr, ">> Generator_Program\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_ProgramHead();
   Generator_ListDecDef( &((*nodeAST)->node1) );
@@ -132,9 +150,9 @@ void Generator_Program(TATSNode **nodeAST) {
 }
 
 void Generator_ListDecDef(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ListDecDef\n");
+  //fprintf(stderr, ">> Generator_ListDecDef\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   printf("\n");
   if( (*nodeAST)->token1 != NULL && (*nodeAST)->token1->type == TK_DECLARE ) {
@@ -150,18 +168,18 @@ void Generator_ListDecDef(TATSNode **nodeAST) {
 
 }
 void Generator_FunctionHead(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_FunctionHead\n");
+  //fprintf(stderr, ">> Generator_FunctionHead\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_FunctionHead( (*nodeAST)->token1->string );
   Generator_ListParam( &((*nodeAST)->node1) );
   //node2->DataType
 }
 void Generator_ListParam(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ListParam\n");
+  //fprintf(stderr, ">> Generator_ListParam\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   if( (*nodeAST)->node1 != NULL ) {
     Generator_Param( &((*nodeAST)->node1) );
@@ -170,18 +188,18 @@ void Generator_ListParam(TATSNode **nodeAST) {
 
 }
 void Generator_Param(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_Param\n");
+  //fprintf(stderr, ">> Generator_Param\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_FunctionParam( (*nodeAST)->token1->string );
   //node1->DataType
   //token2 ->NULL|TK_NUM_* ??
 }
 void Generator_NextParam(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_NextParam\n");
+  //fprintf(stderr, ">> Generator_NextParam\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   if( (*nodeAST)->token1 != NULL ) {
     Generator_Param( &((*nodeAST)->node1) );
@@ -190,22 +208,22 @@ void Generator_NextParam(TATSNode **nodeAST) {
   
 }
 void Generator_DataType(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_DataType\n");
+  //fprintf(stderr, ">> Generator_DataType\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   //token1 -> Int,Double,String
 }
 void Generator_FunctionEnd(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_FunctionEnd\n");
+  //fprintf(stderr, ">> Generator_FunctionEnd\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_FunctionFoot();
 }
 void Generator_ScopeDef(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ScopeDef\n");
+  //fprintf(stderr, ">> Generator_ScopeDef\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   Generator_ScopeHead( &((*nodeAST)->node1) );
   Generator_FunctionBody( &((*nodeAST)->node2) );
@@ -214,39 +232,39 @@ void Generator_ScopeDef(TATSNode **nodeAST) {
 
 }
 void Generator_ScopeHead(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ScopeHead\n");
+  //fprintf(stderr, ">> Generator_ScopeHead\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_ScopeHead();
 }
 void Generator_ScopeEnd(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ScopeEnd\n");
+  //fprintf(stderr, ">> Generator_ScopeEnd\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
 
   GPrint_ScopeFoot();
 }
 void Generator_ScopeAfter(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ScopeAfter\n");
+  //fprintf(stderr, ">> Generator_ScopeAfter\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
 
 }
 void Generator_FunctionBody(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_FunctionBody\n");
+  //fprintf(stderr, ">> Generator_FunctionBody\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   Generator_ListVarDef( &((*nodeAST)->node1) );
   Generator_ListCommand( &((*nodeAST)->node2) );
 
 }
 void Generator_ListVarDef(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ListVarDef\n");
+  //fprintf(stderr, ">> Generator_ListVarDef\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   printf("\n");
   
@@ -263,14 +281,13 @@ void Generator_ListVarDef(TATSNode **nodeAST) {
   }
 
 }
-/*VETEV LISTPOSTFIX NENI DOSAZENA*/
+
 void Generator_VarDefAssigment(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_VarDefAssigment\n");
+  //fprintf(stderr, ">> Generator_VarDefAssigment\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
   
   if( (*nodeAST)->listPostFix != NULL ) {
-    printf("*****VYRAZ*****\n");
     if( (*nodeAST)->token2->type == TK_NUM_STRING ) {
       Generator_StringExpression( (*nodeAST)->listPostFix );
     }
@@ -301,13 +318,12 @@ void Generator_VarDefAssigment(TATSNode **nodeAST) {
 // // prirazen do promnene
   
 }
-/*Není dosažena*/
+
 void Generator_Expression(TList *listPostFix) {
   TListData data;
   int i = 0;
-  printf("generatorExpr\n");
+  //printf("generatorExpr\n");
   while( ListGet(listPostFix, i, &data ) ) {
-    printf("HALO,TADY\n");
     switch( ((TToken*)data.pointer)->type ) {
       case TK_ID:
         GPrint_PushLocalVariable( ((TToken*)data.pointer)->string );
@@ -369,7 +385,7 @@ void Generator_Expression(TList *listPostFix) {
   }
 
 }
-/*Není dosažena také*/
+
 void Generator_StringExpression(TList *listPostFix) {
   TListData data;
   int i = 0;
@@ -416,9 +432,9 @@ void Generator_StringExpression(TList *listPostFix) {
 }
 
 void Generator_ListCommand(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ListCommand\n");
+  //fprintf(stderr, ">> Generator_ListCommand\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
 
   if( (*nodeAST)->node1 != NULL ) {
     Generator_Command( &((*nodeAST)->node1) );
@@ -426,9 +442,9 @@ void Generator_ListCommand(TATSNode **nodeAST) {
   }
 }
 void Generator_Command(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_Command\n");
+  //fprintf(stderr, ">> Generator_Command\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
 
   printf("\n");
   static unsigned int counter = 0;
@@ -461,6 +477,10 @@ void Generator_Command(TATSNode **nodeAST) {
   }
   else if( (*nodeAST)->token1->type == TK_ID ) {
     Generator_Assignment( &((*nodeAST)->node1) );
+    if((*nodeAST)->node1->token2->type != (*nodeAST)->token1->type){
+      GPrint_ConverseResult((*nodeAST)->token2->type);
+    }
+    GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
     // token1 > TK_ID
     // node1 > Assignment  
     
@@ -476,22 +496,9 @@ void Generator_Command(TATSNode **nodeAST) {
     else {
       Generator_Expression( (*nodeAST)->listPostFix );
     }
-    // printf("\n");
-    // printf("mov TF@%%retval ");
-    // switch(returnType) {
-    //   case TK_NUM_INTEGER:
-    //     printf("int@0\n");
-    //     break;
-    //   case TK_NUM_DOUBLE:
-    //     printf("double@0.0\n");
-    //     break;
-    //   case TK_NUM_STRING:
-    //     printf("string@\n");
-    //     break;
-    //   default:
-    //     printf("bool@false\n");
-    //     break;
-    // }
+    if((*nodeAST)->token2->type != (*nodeAST)->token3->type){
+      GPrint_ConverseResult((*nodeAST)->token3->type);
+    }
     GPrint_FunctionFoot();
 
   }
@@ -499,27 +506,29 @@ void Generator_Command(TATSNode **nodeAST) {
     // // print 
     // token1 >TK_PRINT
     // node1 > ListExpression
-    Generator_Expression((*nodeAST)->listPostFix);
+    //Generator_Expression((*nodeAST)->listPostFix);
+    GPrint_Write();
   }
   else if( (*nodeAST)->token1->type == TK_INPUT ) {
     // // input id
     // token1 > TK_INPUT
     // token2 > TK_ID
-    /*if((*nodeAST)->token2->type == TK_ID){
-      GPrint_Read((*nodeAST)->token2->string,(*nodeAST)->token2->);
-    }*/
+    //token3 > DATA_TYPE
+    if((*nodeAST)->token2->type == TK_ID){
+      GPrint_Read();
+    }
   }
 
 }
-void Generator_ListExpression(TATSNode **nodeAST) {
+/*void Generator_ListExpression(TATSNode **nodeAST) {
   fprintf(stderr, ">> Generator_ListExpression\n");
   if( !nodeAST || !(*nodeAST) ) return;
   PrintASTNodeType( (*nodeAST)->type );
-}
+}*/
 void Generator_Condition(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_Condition\n");
+  //fprintf(stderr, ">> Generator_Condition\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
 
   if( (*nodeAST)->listPostFix != NULL ) {
     Generator_Expression( (*nodeAST)->listPostFix );
@@ -527,30 +536,58 @@ void Generator_Condition(TATSNode **nodeAST) {
   
 }
 void Generator_Assignment(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_Assignment\n");
+  //fprintf(stderr, ">> Generator_Assignment\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
+
+  if((*nodeAST)->token1 == NULL){
+    if((*nodeAST)->token2->type == TK_STRING){
+      Generator_StringExpression((*nodeAST)->listPostFix);
+    }
+    else{
+      Generator_Expression((*nodeAST)->listPostFix);
+    }
+  }
+  if((*nodeAST)->token1->type == TK_ID){
+    //GPrint_FunctionCallStart((*nodeAST)->token2->type);
+    //Generator_ListInParam( &((*nodeAST)->node1) );
+  }
 }
 void Generator_ListInParam(TATSNode **nodeAST) {
   fprintf(stderr, ">> Generator_ListInParam\n");
   if( !nodeAST || !(*nodeAST) ) return;
   PrintASTNodeType( (*nodeAST)->type ); 
+
+  if((*nodeAST)->node1 != NULL){
+    Generator_InParam(&((*nodeAST)->node1));
+    Generator_NextInParam(&((*nodeAST)->node2));
+  }
 }
 void Generator_InParam(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_InParam\n");
+ //fprintf(stderr, ">> Generator_InParam\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
+
+  Generator_Term(&((*nodeAST)->node1));
 }
 void Generator_NextInParam(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_NextInParam\n");
+  //fprintf(stderr, ">> Generator_NextInParam\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
+  //PrintASTNodeType( (*nodeAST)->type );
+
+  if((*nodeAST)->node1 != NULL){
+    Generator_InParam(&((*nodeAST)->node1));
+    Generator_NextInParam(&((*nodeAST)->node2));
+  }
 }
 void Generator_Term(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_Term\n");
+  //fprintf(stderr, ">> Generator_Term\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );  
+  //PrintASTNodeType( (*nodeAST)->type );  
+
+
 }
+//-----------------------------------
 
 #endif
 
