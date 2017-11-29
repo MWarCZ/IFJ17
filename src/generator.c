@@ -100,23 +100,6 @@ void GPrint_PushString(char* value) {
   printf("pushs string@%s\n", value );
 }
 
-//I/O
-void GPrint_Read(){
-  printf("read ...\n");
-  /*if(token2->type == TK_NUM_STRING){
-    printf("read LF@%s string",token1->string);
-  }
-  else if(token2->type == TK_NUM_INTEGER){
-    printf("read LF@%s int\n",token1->string);
-  }
-  else if(token2->type == TK_NUM_DOUBLE){
-    printf("read LF@%s float\n",token1->string);
-  }
-  else{
-    printf("Error?\n");
-  }*/
-}
-
 void GPrint_ConverseResult(TTokenType varType){
   if(varType == TK_NUM_DOUBLE){
     printf("int2floats\n");
@@ -124,10 +107,6 @@ void GPrint_ConverseResult(TTokenType varType){
   else{
     printf("float2ints\n");
   }
-}
-
-void GPrint_Write(){
-  printf("WRITE\n");
 }
 
 //-------------
@@ -218,7 +197,7 @@ void Generator_FunctionEnd(TATSNode **nodeAST) {
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
-  GPrint_FunctionFoot();
+  //GPrint_FunctionFoot();
 }
 void Generator_ScopeDef(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_ScopeDef\n");
@@ -496,9 +475,6 @@ void Generator_Command(TATSNode **nodeAST) {
     else {
       Generator_Expression( (*nodeAST)->listPostFix );
     }
-    if((*nodeAST)->token2->type != (*nodeAST)->token3->type){
-      GPrint_ConverseResult((*nodeAST)->token3->type);
-    }
     GPrint_FunctionFoot();
 
   }
@@ -506,25 +482,47 @@ void Generator_Command(TATSNode **nodeAST) {
     // // print 
     // token1 >TK_PRINT
     // node1 > ListExpression
-    //Generator_Expression((*nodeAST)->listPostFix);
-    GPrint_Write();
+    Generator_ListExpression( &((*nodeAST)->node1) );
   }
-  else if( (*nodeAST)->token1->type == TK_INPUT ) {
+  else if( (*nodeAST)->token1->type == TK_INPUT ) {/////////////
     // // input id
     // token1 > TK_INPUT
     // token2 > TK_ID
     //token3 > DATA_TYPE
     if((*nodeAST)->token2->type == TK_ID){
-      GPrint_Read();
+      if((*nodeAST)->token3->type == TK_NUM_STRING){
+        printf("read LF@%%%s string\n",(*nodeAST)->token2->string);
+      }
+      else if((*nodeAST)->token3->type == TK_NUM_INTEGER){
+        printf("read LF@%%%s int\n",(*nodeAST)->token2->string);
+      }
+      else if((*nodeAST)->token3->type == TK_NUM_DOUBLE){
+        printf("read LF@%%%s float\n",(*nodeAST)->token2->string);
+      }
     }
   }
-
 }
-/*void Generator_ListExpression(TATSNode **nodeAST) {
-  fprintf(stderr, ">> Generator_ListExpression\n");
+void Generator_ListExpression(TATSNode **nodeAST) {
+  //fprintf(stderr, ">> Generator_ListExpression\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  PrintASTNodeType( (*nodeAST)->type );
-}*/
+  //PrintASTNodeType( (*nodeAST)->type );
+  static unsigned int ExprCounter = 0;
+  unsigned int locCounter = ExprCounter;
+  ExprCounter++;
+
+  if((*nodeAST)->listPostFix != NULL){
+    if((*nodeAST)->token2->type == TK_NUM_STRING){
+      Generator_StringExpression((*nodeAST)->listPostFix);
+    }
+    else{
+      Generator_Expression((*nodeAST)->listPostFix);
+    }
+    printf("defvar p_tmp%%%d\n",locCounter);
+    printf("pops p_tmp%%%d\n",locCounter);
+    printf("write p_tmp%%%d\n",locCounter);
+    Generator_ListExpression(&((*nodeAST)->node1));
+  }
+}
 void Generator_Condition(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_Condition\n");
   if( !nodeAST || !(*nodeAST) ) return;
