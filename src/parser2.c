@@ -727,8 +727,10 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       }
       /* TS e*/
       (*nodeAST)->token2 = (*tkn); /// AST input id
+      (*nodeAST)->token3 = TokenInit();
+      (*nodeAST)->token3->type = SymDataTypeToTokenType( lel->dataType ); 
       (*tkn) = GetNextToken();
-      //(*tkn) = GetNextDestroyOldToken( (*tkn),1 );
+
       return 1;
       break;
     case TK_PRINT: /// print
