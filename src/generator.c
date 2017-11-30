@@ -153,7 +153,7 @@ void Generator_FunctionHead(TATSNode **nodeAST) {
   
   GPrint_FunctionHead( (*nodeAST)->token1->string );
   Generator_ListParam( &((*nodeAST)->node1) );
-  //node2->DataType
+  Generator_DataType( &((*nodeAST)->node2) );
 }
 void Generator_ListParam(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_ListParam\n");
@@ -166,7 +166,7 @@ void Generator_ListParam(TATSNode **nodeAST) {
   }
 
 }
-void Generator_Param(TATSNode **nodeAST) {
+void Generator_Param(TATSNode **nodeAST) {///////////
   //fprintf(stderr, ">> Generator_Param\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
@@ -186,11 +186,12 @@ void Generator_NextParam(TATSNode **nodeAST) {
   }
   
 }
-void Generator_DataType(TATSNode **nodeAST) {
+void Generator_DataType(TATSNode **nodeAST) { //////////
   //fprintf(stderr, ">> Generator_DataType\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
-  //token1 -> Int,Double,String
+  
+
 }
 void Generator_FunctionEnd(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_FunctionEnd\n");
@@ -211,24 +212,17 @@ void Generator_ScopeDef(TATSNode **nodeAST) {
 
 }
 void Generator_ScopeHead(TATSNode **nodeAST) {
-  //fprintf(stderr, ">> Generator_ScopeHead\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_ScopeHead();
 }
 void Generator_ScopeEnd(TATSNode **nodeAST) {
-  //fprintf(stderr, ">> Generator_ScopeEnd\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  //PrintASTNodeType( (*nodeAST)->type );
 
   GPrint_ScopeFoot();
 }
 void Generator_ScopeAfter(TATSNode **nodeAST) {
-  //fprintf(stderr, ">> Generator_ScopeAfter\n");
   if( !nodeAST || !(*nodeAST) ) return;
-  //PrintASTNodeType( (*nodeAST)->type );
-  
 
 }
 void Generator_FunctionBody(TATSNode **nodeAST) {
@@ -483,8 +477,9 @@ void Generator_Command(TATSNode **nodeAST) {
     // token1 >TK_PRINT
     // node1 > ListExpression
     Generator_ListExpression( &((*nodeAST)->node1) );
+
   }
-  else if( (*nodeAST)->token1->type == TK_INPUT ) {/////////////
+  else if( (*nodeAST)->token1->type == TK_INPUT ) {
     // // input id
     // token1 > TK_INPUT
     // token2 > TK_ID
@@ -500,6 +495,18 @@ void Generator_Command(TATSNode **nodeAST) {
         printf("read LF@%%%s float\n",(*nodeAST)->token2->string);
       }
     }
+  }
+  else if( (*nodeAST)->token1->type == TK_LENGTH ){////////////
+
+  }
+  else if( (*nodeAST)->token1->type == TK_SUBSTR ){/////////////
+
+  }
+  else if( (*nodeAST)->token1->type == TK_ASC ){////////////
+
+  }
+  else if( (*nodeAST)->token1->type == TK_CHR ){///////////
+
   }
 }
 void Generator_ListExpression(TATSNode **nodeAST) {
@@ -578,7 +585,7 @@ void Generator_NextInParam(TATSNode **nodeAST) {
     Generator_NextInParam(&((*nodeAST)->node2));
   }
 }
-void Generator_Term(TATSNode **nodeAST) {
+void Generator_Term(TATSNode **nodeAST) {///////////
   //fprintf(stderr, ">> Generator_Term\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );  
