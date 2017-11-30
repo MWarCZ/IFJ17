@@ -19,12 +19,24 @@
 #include "ast.h"
 #include "token.h"
 #include "list.h"
+#include "string.h"
 
 /*
   funkce s nazvem 'xyz': f%xyz
   promena/parametr s nazvem 'xyz': p%xyz
 
  */
+void GPrint_PrintString(char* str){
+  int len = strlen(str);
+  for(int i=0; i<len; i++ ) {
+    if( (str[i]>= 0 && str[i]<=32 )||(str[i]==92) ) {
+      printf("\\%03d", str[i] );
+    }
+    else {
+      printf("%c", str[i] );
+    }
+  }
+}
 
 void GPrint_ProgramHead() {
   printf(".ifjcode17\njump SCOPE\n");
@@ -47,7 +59,7 @@ void GPrint_FunctionParam(char* name) {
   printf("defvar LF@p%%%s\npops LF@p%%%s\n", name, name);
 }
 void GPrint_FunctionFoot() {
-  printf("popframe\nreturn\n");
+  printf("return\npopframe\n");
 }
 //-----------
 
@@ -62,7 +74,7 @@ void GPrint_LocalVariableCreateEnd(char* name) {
 // Call Function
 void GPrint_FunctionCallStart(TTokenType returnType) {
   printf("createframe\ndefvar TF@%%retval\n");
-  printf("mov TF@%%retval ");
+  printf("move TF@%%retval ");
   switch(returnType) {
     case TK_NUM_INTEGER:
       printf("int@0\n");
@@ -79,8 +91,9 @@ void GPrint_FunctionCallStart(TTokenType returnType) {
   }
 
 }
-void GPrint_FunctionCall(char* name) {
-  printf("call %s\n", name);
+void GPrint_FunctionCallEnd(char* name) {
+  printf("call f%%%s\n", name);
+  printf("pushs TF@%%retval\n");
 }
 //--------
 
@@ -95,17 +108,13 @@ void GPrint_PushDouble(double value) {
 }
 void GPrint_PushString(char* value) {
   printf("pushs string@%s\n",value);
+  GPrint_PrintString(value);
+  printf("\n");
 }
 
-void GPrint_ConverseResult(TTokenType varType){
-  if(varType == TK_NUM_DOUBLE){
-    printf("int2floats\n");
-  }
-  else{
-    printf("float2ints\n");
-  }
+void GPrint_PopLocalVariable(char* name) {
+  printf("pops LF@p%%%s\n", name );
 }
-
 //-------------
 //
 //-------------
@@ -133,7 +142,6 @@ void Generator_ListDecDef(TATSNode **nodeAST) {
   printf("\n");
   if( (*nodeAST)->token1 != NULL && (*nodeAST)->token1->type == TK_DECLARE ) {
     Generator_ListDecDef( &((*nodeAST)->node2) );
-    //node1->FunctionHead????
   }
   else {
     Generator_FunctionHead( &((*nodeAST)->node1) );
@@ -150,7 +158,7 @@ void Generator_FunctionHead(TATSNode **nodeAST) {
   
   GPrint_FunctionHead( (*nodeAST)->token1->string );
   Generator_ListParam( &((*nodeAST)->node1) );
-  Generator_DataType( &((*nodeAST)->node2) );
+  //Generator_DataType( &((*nodeAST)->node2) );
 }
 void Generator_ListParam(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_ListParam\n");
@@ -169,7 +177,7 @@ void Generator_Param(TATSNode **nodeAST) {///////////
   //PrintASTNodeType( (*nodeAST)->type );
   
   GPrint_FunctionParam( (*nodeAST)->token1->string );
-  Generator_DataType( &((*nodeAST)->node1) );
+  //Generator_DataType( &((*nodeAST)->node1) );
   //token2 ->NULL|TK_NUM_* ??
 }
 void Generator_NextParam(TATSNode **nodeAST) {
@@ -195,7 +203,7 @@ void Generator_FunctionEnd(TATSNode **nodeAST) {
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
-  //GPrint_FunctionFoot();
+  GPrint_FunctionFoot();
 }
 void Generator_ScopeDef(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_ScopeDef\n");
@@ -241,8 +249,6 @@ void Generator_ListVarDef(TATSNode **nodeAST) {
   if( (*nodeAST)->token1 != NULL ) {
     GPrint_LocalVariableCreateStart( (*nodeAST)->token1->string );
 
-    //node1->DataType
-
     Generator_VarDefAssigment( &((*nodeAST)->node2) );
 
     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
@@ -263,6 +269,12 @@ void Generator_VarDefAssigment(TATSNode **nodeAST) {
     }
     else {
       Generator_Expression( (*nodeAST)->listPostFix );
+    }
+    if( (*nodeAST)->token1->type == TK_NUM_INTEGER && (*nodeAST)->token2->type == TK_NUM_DOUBLE ) {
+      printf("float2r2eints\n");
+    }
+    else if( (*nodeAST)->token1->type == TK_NUM_DOUBLE && (*nodeAST)->token2->type == TK_NUM_INTEGER ) {
+      printf("int2floats\n");
     }
   }
   else {
@@ -447,9 +459,14 @@ void Generator_Command(TATSNode **nodeAST) {
   }
   else if( (*nodeAST)->token1->type == TK_ID ) {
     Generator_Assignment( &((*nodeAST)->node1) );
-    if((*nodeAST)->node1->token2->type != (*nodeAST)->token1->type){
-      GPrint_ConverseResult((*nodeAST)->token2->type);
+
+    if( (*nodeAST)->token2->type == TK_NUM_INTEGER && (*nodeAST)->node1->token2->type == TK_NUM_DOUBLE ) {
+      printf("float2r2eints\n");
     }
+    else if( (*nodeAST)->token2->type == TK_NUM_DOUBLE && (*nodeAST)->node1->token2->type == TK_NUM_INTEGER ) {
+      printf("int2floats\n");
+    }
+
     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
     // token1 > TK_ID
     // node1 > Assignment  
@@ -466,6 +483,16 @@ void Generator_Command(TATSNode **nodeAST) {
     else {
       Generator_Expression( (*nodeAST)->listPostFix );
     }
+
+    if( (*nodeAST)->token3->type == TK_NUM_INTEGER && (*nodeAST)->token2->type == TK_NUM_DOUBLE ) {
+      printf("float2r2eints\n");
+    }
+    else if( (*nodeAST)->token3->type == TK_NUM_DOUBLE && (*nodeAST)->token2->type == TK_NUM_INTEGER ) {
+      printf("int2floats\n");
+    }
+
+    printf("pops LF@%%retval\n");
+
     GPrint_FunctionFoot();
 
   }
@@ -477,20 +504,21 @@ void Generator_Command(TATSNode **nodeAST) {
 
   }
   else if( (*nodeAST)->token1->type == TK_INPUT ) {
-    // // input id
-    // token1 > TK_INPUT
-    // token2 > TK_ID
-    //token3 > DATA_TYPE
-    if((*nodeAST)->token2->type == TK_ID){
-      if((*nodeAST)->token3->type == TK_NUM_STRING){
-        printf("read LF@%%%s string\n",(*nodeAST)->token2->string);
-      }
-      else if((*nodeAST)->token3->type == TK_NUM_INTEGER){
-        printf("read LF@%%%s int\n",(*nodeAST)->token2->string);
-      }
-      else if((*nodeAST)->token3->type == TK_NUM_DOUBLE){
-        printf("read LF@%%%s float\n",(*nodeAST)->token2->string);
-      }
+    printf("write string@?\\032\n");
+    printf("read LF@p%%%s ", (*nodeAST)->token2->string );
+    switch( (*nodeAST)->token3->type ) {
+      case TK_NUM_INTEGER: 
+        printf("int\n");
+        break;
+      case TK_NUM_DOUBLE: 
+        printf("float\n");
+        break;
+      case TK_NUM_STRING: 
+        printf("string\n");
+        break;
+      default: 
+        printf("string\n");
+        break;
     }
   }
   else if( (*nodeAST)->token1->type == TK_LENGTH ){////////////
@@ -514,17 +542,12 @@ void Generator_ListExpression(TATSNode **nodeAST) {
   unsigned int locCounter = ExprCounter;
   ExprCounter++;
 
-  if((*nodeAST)->listPostFix != NULL){
-    if((*nodeAST)->token2->type == TK_NUM_STRING){
-      Generator_StringExpression((*nodeAST)->listPostFix);
-    }
-    else{
-      Generator_Expression((*nodeAST)->listPostFix);
-    }
-    printf("defvar p_tmp%%%d\n",locCounter);
-    printf("pops p_tmp%%%d\n",locCounter);
-    printf("write p_tmp%%%d\n",locCounter);
-    Generator_ListExpression(&((*nodeAST)->node1));
+  if( (*nodeAST)->listPostFix != NULL ) {
+    Generator_Expression( (*nodeAST)->listPostFix );
+    printf("defvar LF@p_tmp%%%d\n", locCounter);
+    printf("pops LF@p_tmp%%%d\n",locCounter );
+    printf("write LF@p_tmp%%%d\n", locCounter);
+    Generator_ListExpression( &((*nodeAST)->node1) );
   }
 }
 void Generator_Condition(TATSNode **nodeAST) {
@@ -552,8 +575,9 @@ void Generator_Assignment(TATSNode **nodeAST) {
   }
   else if((*nodeAST)->token1->type == TK_ID){
     //GPrint_FunctionCallStart((*nodeAST)->token2->type);
-    GPrint_FunctionCall((*nodeAST)->token1->string);
+    GPrint_FunctionCallStart( (*nodeAST)->token2->type );
     Generator_ListInParam( &((*nodeAST)->node1) );
+    GPrint_FunctionCallEnd( (*nodeAST)->token1->string );
   }
 }
 void Generator_ListInParam(TATSNode **nodeAST) {
@@ -570,11 +594,17 @@ void Generator_InParam(TATSNode **nodeAST) {
  //fprintf(stderr, ">> Generator_InParam\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
-  if((*nodeAST)->token1->type != (*nodeAST)->token2->type){
-    //ERROR??
-  
+
+  Generator_Term( &((*nodeAST)->node1) );
+  // token1 - typ pozadovaneho parametru funkce
+  // token2 - typ vstupniho parametru funkce
+  if( (*nodeAST)->token1->type == TK_NUM_INTEGER && (*nodeAST)->token2->type == TK_NUM_DOUBLE ) {
+    printf("float2r2eints\n");
   }
-  Generator_Term(&((*nodeAST)->node1));
+  else if( (*nodeAST)->token1->type == TK_NUM_DOUBLE && (*nodeAST)->token2->type == TK_NUM_INTEGER ) {
+    printf("int2floats\n");
+  }
+
 }
 void Generator_NextInParam(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_NextInParam\n");
@@ -591,6 +621,22 @@ void Generator_Term(TATSNode **nodeAST) {///////////
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );  
 
+  switch( (*nodeAST)->token1->type ) {
+    case TK_ID:
+      GPrint_PushLocalVariable( (*nodeAST)->token1->string );
+      break;
+    case TK_NUM_INTEGER:
+      GPrint_PushInt( (*nodeAST)->token1->data.integerValue );
+      break;
+    case TK_NUM_DOUBLE:
+      GPrint_PushDouble( (*nodeAST)->token1->data.doubleValue );
+      break;
+    case TK_NUM_STRING:
+      GPrint_PushString( (*nodeAST)->token1->string );
+      break;
+    default:
+      break;
+  }
 
 }
 //-----------------------------------
