@@ -98,7 +98,7 @@ int Syntaxx_ListDecDef(TToken **tkn, TATSNode **nodeAST) {
       return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1), &gel, 1 ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node2)  );
       break;
     case TK_FUNCTION:
-      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1), &gel, 0 ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2), &gel ) && Syntaxx_FunctionEnd(tkn, &((*nodeAST)->node3)  ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node4)  );
+      return Syntaxx_FunctionHead(tkn, &((*nodeAST)->node1), &gel, 0 ) && Syntaxx_FunctionBody(tkn, &((*nodeAST)->node2), &gel ) && Syntaxx_FunctionEnd(tkn, &((*nodeAST)->node3), &gel, 0  ) && Syntaxx_ListDecDef(tkn, &((*nodeAST)->node4)  );
       break;
     case TK_SCOPE:
       return 1;
@@ -148,7 +148,7 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel
           CallError(ERR_SEM);
           return 0;
         }
-        (*gel)->defined = 1;
+        (*gel)->defined = -1; // -1 = zacala definice funkce
       }
       /* TS e*/
       (*nodeAST)->token1 = (*tkn); /// AST id
@@ -330,6 +330,15 @@ int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **elem) {
     case TK_INTEGER: /// integer
     case TK_DOUBLE: /// double
     case TK_STRING: /// string
+      if( (*elem)->dataType != SYM_DATATYPE_VOID ) {
+        if( (*elem)->dataType != TokenTypeToSymDataType( (*tkn)->type ) ) {
+          // ERR_SEM
+          PrintLineErr( (*tkn) );
+          fprintf(stderr, "Datovy typ funkce v deklaraci a definice se neschoduje.\n");
+          CallError(ERR_SEM);
+          return 0;
+        }
+      }
       (*elem)->dataType = TokenTypeToSymDataType( (*tkn)->type ); /* TS */
       (*nodeAST)->token1 = (*tkn); /// AST id
       (*tkn) = GetNextToken();
@@ -343,7 +352,7 @@ int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **elem) {
   }
   
 }
-int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST) {
+int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow) {
   (*nodeAST) = InitASTNode(AST_FunctionEnd); // AST
   switch( (*tkn)->type ) {
     case TK_END: /// end
@@ -355,6 +364,9 @@ int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST) {
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
       if( (*tkn)->type != TK_EOL ) { /// eol
         return 0;
+      }
+      if( !isDeclareNow ) {
+        (*gel)->defined = 1; // Skoncila definice fukce
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
       return 1;
@@ -775,10 +787,11 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
 int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
   (*nodeAST) = InitASTNode(AST_ListExpression); // AST
   // Expression
-  if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING ) {
+  if( (*tkn)->type == TK_ID || (*tkn)->type == TK_NUM_INTEGER || (*tkn)->type == TK_NUM_DOUBLE || (*tkn)->type == TK_NUM_STRING || (*tkn)->type == TK_BRACKET_ROUND_LEFT ) {
+
     if( Syntaxx_Expression(tkn, nodeAST, gel) ) {
       if( (*tkn)->type != TK_SEMICOLON ) {
-        fprintf(stderr, "semicolon\n");
+        fprintf(stderr, "Chyby strednik za vyrazem print.\n");
         return 0;
       }
       (*tkn) = GetNextDestroyOldToken( (*tkn),1 );
@@ -843,6 +856,14 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
         CallError(ERR_SEM);
         return 0;
       }
+      else if( lel->defined == -1 && lel->declared == 0 ) {
+        // ERR_SEM
+        PrintLineErr( (*tkn) );
+        fprintf(stderr, "Ve funkci '%s' nemuze byt volana funkce '%s' pokud ji nepredchazi declarace.\n", (*tkn)->string, (*tkn)->string );
+        CallError(ERR_SEM);
+        return 0;
+      }
+      fprintf(stderr, "X>> %d\n",lel->defined );
       (*nodeAST)->token2 = TokenInit();
       (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
       /* TS e*/
