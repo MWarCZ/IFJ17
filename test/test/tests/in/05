@@ -1,0 +1,13 @@
+Scope
+    Dim a As Integer = 6
+    Dim b As Double = 1.5
+    Dim c As Integer = 9
+    Dim d As Double = 4.5
+    Dim e As Integer = 3
+    
+    Print a / b + c * d; !"\n";
+    Print a < b + c >= d; !"\n";
+    Print ( a - b ) * (c + d); !"\n";
+    Print a + e = c; !"\n";
+    Print a + b > c;
+End Scope

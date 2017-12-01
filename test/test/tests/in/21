@@ -1,0 +1,8 @@
+Function test(a as Integer, s as String) as integer
+    print a;
+    print s;
+end function
+
+Scope
+    test(42)
+End Scope

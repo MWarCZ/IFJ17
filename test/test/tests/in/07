@@ -1,0 +1,16 @@
+Scope
+    Dim a As Integer = 42
+    
+    If a = 42 Then
+        Print !"a is 42\n";
+    Else
+        Print !"a is not 42\n";
+    End If
+    
+    If a > 10 Then
+        Print !"a is greater than 10";
+    Else
+        Print !"a is less than 10";
+    End If
+    
+End Scope

@@ -1,0 +1,4 @@
+Scope
+    Dim a As Integer = 42
+    DIm a As String;
+End Scope

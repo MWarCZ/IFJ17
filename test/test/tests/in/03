@@ -1,0 +1,8 @@
+Scope
+    Dim a As Integer = 42
+    Dim b As Double = 13.37
+    Dim c As String = !"The answer is not"
+    
+    Print c; b; ", but"; a;
+    
+End Scope

@@ -1,0 +1,5 @@
+Scope
+    Dim a As String = !"Hello"
+    
+    a = a < 5
+End Scope

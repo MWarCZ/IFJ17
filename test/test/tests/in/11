@@ -1,0 +1,19 @@
+Scope
+    Dim l As Integer
+    Dim s As String
+
+    Dim a1 As Integer
+    Dim a2 As Integer
+
+    Dim c As String
+
+    l = Length(!"Hello")
+    s = SubStr(!"This is a string", 11, 6)
+    
+    a1 = Asc(!"Hello", 1)
+    a2 = Asc(!"Hello", 6)
+    c = Chr(72)
+
+    Print l; s; a1; a2; c;
+    
+End Scope

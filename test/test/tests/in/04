@@ -1,0 +1,18 @@
+Scope
+    Dim a As Integer = 6
+    Dim b As Double = 1.5
+    Dim c As Integer = 6
+    
+    Print a + b; !"\n";
+    Print a - b; !"\n";
+    Print a * b; !"\n";
+    Print a / b; !"\n";
+    
+    Print a < b; !"\n";
+    Print a > b; !"\n";
+    Print a = c; !"\n";
+    Print a >= b; !"\n";
+    Print a >= c; !"\n";
+    Print a <= b; !"\n";
+    Print a <= c;
+End Scope

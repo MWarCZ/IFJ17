@@ -1,0 +1,8 @@
+Scope
+    Dim a As Integer = 42
+    Dim b As Integer
+    
+    b = a
+    
+    Print b;
+End Scope
