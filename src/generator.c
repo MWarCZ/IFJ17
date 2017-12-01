@@ -26,6 +26,20 @@
   promena/parametr s nazvem 'xyz': p%xyz
 
  */
+/*Length funkce*/
+/*void GPrint_Length(){
+  printf("label f%%length\n");
+  printf("pushframe\n");
+
+  printf("defvar LF@p%%strlength\npushs string@\npops LF@p%%strlength\n");
+  printf("defvar LF@p%%chars\npushs int@0\npops LF@p%%chars\n");
+  printf("strlen LF@p%%chars LF@p%%strlength\npushs LF@p%%chars\n");
+
+  printf("pops LF@%%retval\n");
+  printf("popframe\n");
+  printf("return\n");
+}*/
+
 void GPrint_PrintString(char* str){
   int len = strlen(str);
   for(int i=0; i<len; i++ ) {
@@ -40,6 +54,7 @@ void GPrint_PrintString(char* str){
 
 void GPrint_ProgramHead() {
   printf(".ifjcode17\njump SCOPE\n");
+  GPrint_Length();
 }
 
 // Scope
@@ -59,7 +74,7 @@ void GPrint_FunctionParam(char* name) {
   printf("defvar LF@p%%%s\npops LF@p%%%s\n", name, name);
 }
 void GPrint_FunctionFoot() {
-  printf("return\npopframe\n");
+  printf("popframe\nreturn\n");
 }
 //-----------
 
@@ -80,7 +95,7 @@ void GPrint_FunctionCallStart(TTokenType returnType) {
       printf("int@0\n");
       break;
     case TK_NUM_DOUBLE:
-      printf("double@0.0\n");
+      printf("float@0.0\n");
       break;
     case TK_NUM_STRING:
       printf("string@\n");
@@ -104,10 +119,10 @@ void GPrint_PushInt(int value) {
   printf("pushs int@%d\n", value );
 }
 void GPrint_PushDouble(double value) {
-  printf("pushs double@%g\n", value );
+  printf("pushs float@%g\n", value );
 }
 void GPrint_PushString(char* value) {
-  printf("pushs string@%s\n",value);
+  printf("pushs string@");
   GPrint_PrintString(value);
   printf("\n");
 }
@@ -522,7 +537,6 @@ void Generator_Command(TATSNode **nodeAST) {
     }
   }
   else if( (*nodeAST)->token1->type == TK_LENGTH ){////////////
-
   }
   else if( (*nodeAST)->token1->type == TK_SUBSTR ){/////////////
 
