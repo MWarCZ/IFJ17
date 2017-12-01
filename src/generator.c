@@ -31,7 +31,7 @@
   printf("label f%%length\n");
   printf("pushframe\n");
 
-  printf("defvar LF@p%%strlength\npushs string@\npops LF@p%%strlength\n");
+  printf("defvar LF@p%%strlength\npops LF@p%%strlength\n");
   printf("defvar LF@p%%chars\npushs int@0\npops LF@p%%chars\n");
   printf("strlen LF@p%%chars LF@p%%strlength\npushs LF@p%%chars\n");
 
@@ -39,6 +39,8 @@
   printf("popframe\n");
   printf("return\n");
 }*/
+
+//void GPrint_SubStr();
 
 void GPrint_PrintString(char* str){
   int len = strlen(str);
