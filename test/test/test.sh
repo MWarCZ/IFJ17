@@ -2,7 +2,7 @@
 
 ### THESE HAVE TO BE FILLED IN CORRECTLY ###
 
-compiler=""; # Full path to compiler executable
+compiler="../../build/run"; # Full path to compiler executable
 interpret="./ic17int"; # Full path to interpret executable
 
 
@@ -36,7 +36,7 @@ function line {
 
 ### MAIN ###
 
-[[ -z $compiler || -z $interpret ]] && echo "Compiler or Interpreter path not set" && exit;
+[[ -z $compiler || -z $interpret || ! -f $compiler || ! -f $interpret ]] && echo "Compiler or Interpreter not found" && exit;
 
 # Create folders
 [[ ! -d "$outputCompilerDir" ]] && mkdir "$outputCompilerDir";
@@ -61,35 +61,43 @@ for test in $(find $testDir -maxdepth 1 -type f); do
     line;
 
     # Run compiler
-    $compiler < $inputFile > $outputCompilerFile;
+    $compiler < $inputFile > "$outputCompilerFile.stdout" 2> "$outputCompilerFile.stderr"
     compilerCode=$?;
 
     # Print compiler code
     printf " Compiler code:\t\t";
     if [[ $compilerCode -eq $expectedCompilerCode ]]; then
         echo -e "\e[32m"$compilerCode"\e[39m";
-        echo -e " Result:\t\t\e[32mSUCCESS\e[39m";
     else
         echo -e "\e[31m$compilerCode\e[39m (expected $expectedCompilerCode)";
     fi;
 
-    # Run interpreter if not expecting compiler to fail
-    [[ ! $expectedCompilerCode -eq 0 ]] && line && echo && continue;
+    # If expecting compiler to fail, print result and skip interpretaion
+    if [[ ! $expectedCompilerCode -eq 0 ]]; then
+        if [[ $compilerCode -eq $expectedCompilerCode ]]; then
+            echo -e " Result:\t\t\e[32mSUCCESS\e[39m";
+        else 
+            echo -e " Result:\t\t\e[31mFAILED\e[39m";
+        fi;
+        
+        line && echo && continue;
+    fi;
 
-    $interpret < $outputCompilerFile > $outputInterpretFile;
+    # Run interpreter if not expecting compiler to fail
+    $interpret "$outputCompilerFile.stdout" > "$outputInterpretFile.stdout" 2> "$outputInterpretFile.stderr";
     interpretCode=$?;
 
     # Print interpreter code
     printf " Interpret code:\t";
     if [[ $interpretCode -eq $expectedInterpretCode ]]; then
-        echo -e "\e[32m" $interpretCode"\e[39m";
+        echo -e "\e[32m"$interpretCode"\e[39m";
     else 
         echo -e "\e[31m$interpretCode\e[39m (expected $expectedInterpretCode)";
     fi;
 
     # Check interpreter output
     if [[ -f $expectedFile ]]; then
-        diff $outputInterpretFile $expectedFile > /dev/null;
+        diff "$outputInterpretFile.stdout" $expectedFile > /dev/null;
         diffOutput=$?;
 
         printf " Interpret output:\t";

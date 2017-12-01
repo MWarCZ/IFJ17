@@ -1,0 +1,6 @@
+Scope
+    Dim a as Integer
+
+    a = Length(!"Hello World!")
+    Print a;
+End Scope

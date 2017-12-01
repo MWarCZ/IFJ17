@@ -1,0 +1,6 @@
+Scope
+    Dim a as Integer
+
+    a = Asc(!"H", 1)
+    Print a;
+End Scope

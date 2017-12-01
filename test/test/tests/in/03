@@ -3,6 +3,6 @@ Scope
     Dim b As Double = 13.37
     Dim c As String = !"The answer is not"
     
-    Print c; b; ", but"; a;
+    Print c; b; !", but"; a;
     
 End Scope

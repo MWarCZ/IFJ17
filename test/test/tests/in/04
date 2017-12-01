@@ -5,8 +5,8 @@ Scope
     
     Print a + b; !"\n";
     Print a - b; !"\n";
-    Print a * b; !"\n";
-    Print a / b; !"\n";
+    Print a * c; !"\n";
+    Print a / c; !"\n";
     
     Print a < b; !"\n";
     Print a > b; !"\n";

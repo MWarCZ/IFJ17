@@ -1,5 +1,7 @@
-Declare Function factorial (n As Integer) As Integer
+Declare Function fact(n As Integer) As Integer
+
 Function fact(n As Integer) As Integer
+    
     Dim temp_result As Integer
     Dim decremented_n As Integer
     Dim result As Integer
@@ -15,5 +17,7 @@ Function fact(n As Integer) As Integer
 End Function
 
 Scope
-    Print fact(6);
+    Dim a As Integer
+    a = fact(6)
+    Print a;
 End Scope
