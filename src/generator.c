@@ -40,42 +40,22 @@ void GPrint_Length(){
 }
 
 
-/*void GPrint_SubStr(){
-  printf("label f%%substr\n");
-  printf("pushframe\n");
+void GPrint_SubStr(){
+  printf("label f%%substr\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\ndefvar LF@p%%n\npops LF@p%%n\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ndefvar LF@p%%len2end\npushs int@0\npops LF@p%%len2end\ndefvar LF@p%%counter\npushs int@0\npops LF@p%%counter\ndefvar LF@p%%outstr\npushs string@\npops LF@p%%outstr\ndefvar LF@p%%tmpstr\npushs string@\npops LF@p%%tmpstr\n"); 
 
-  printf("defvar LF@p%%StrEnd\npops LF@p%%StrEnd\n");
-  printf("defvar LF@p%%StrBegin\npops LF@p%%StrBegin\n");
-  printf("defvar LF@p%%Str\npops LF@%%Str\n");
-  printf("defvar LF@p%%substrTmp\npushs bool@false\npops LF@p%%substrTmp\n");
-  printf("defvar LF@p%%retString\npushs string@\npops LF@p%%retString\n");
+  printf("createframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%len\npushs int@0\neqs\npushs bool@false\njumpifeqs else_ifd%%1\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifd%%1\nlabel else_ifd%%1\npushs LF@p%%i\npushs int@0\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_ifd%%3\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifd%%3\nlabel else_ifd%%3\nlabel end_ifd%%3\nlabel end_ifd%%1\npushs LF@p%%len\npushs LF@p%%i\nsubs\npops LF@p%%len2end\npushs LF@p%%n\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifd%%6\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\nlabel start_dod%%8\npushs LF@p%%i\npushs LF@p%%len2end\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%8\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%8\nlabel end_dod%%8\njump end_ifd%%6\nlabel else_ifd%%6\npushs LF@p%%n\npushs LF@p%%len2end\ngts\npushs bool@false\njumpifeqs else_ifd%%12\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\n"); 
 
-  printf("pushs LF@p%%StrBegin\npushs int@0\nlts\n");
-  printf("pushs LF@p%%StrBegin\npushs int@0\neqs\n");
-  printf("ors\npops LF@p%%substrTmp");
-  printf("pushs LF@p%%Str\npushs str@\neqs\npushs LF@p%%substrTmp\nors\n");
+  printf("label start_dod%%14\npushs LF@p%%i\npushs LF@p%%len2end\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%14\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%14\nlabel end_dod%%14\njump end_ifd%%12\nlabel else_ifd%%12\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\npushs LF@p%%n\npushs LF@p%%i\nadds\npops LF@p%%n\nlabel start_dod%%19\npushs LF@p%%i\npushs LF@p%%n\npushs int@1\nsubs\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%19\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%19\nlabel end_dod%%19\nlabel end_ifd%%12\nlabel end_ifd%%6\npushs LF@p%%outstr\npops LF@%%retval\npopframe\nreturn\npopframe\nreturn\n\n");
 
-  printf("pushs bool@false\njumpifeqs else_if%%substr1\n");
-    printf("clears\npushs LF@p%%StrEnd\npushs int@0\nlts\npushs LF@p%%StrEnd\n");
-    printf("pushs LF@p%%Str\ncall f%%length\ngts\nors\n");
-    printf("pushs bool@false\njumpifeqs else_if%%substr2\n");
-      printf("");
-    printf("jump end_if%%substr\nlabel else_if%%substr\n");
-      printf("");
-    printf("label end_if%%substr\n");
-  printf("jump end_if%%substr\nlabel else_if%%substr\n");
-    printf("move LF@%%retval LF@p%%retString\n");
-  printf("label end_if%%substr\n");
-
-}*/
+}
 
 void GPrint_Asc(){
-  printf("label f%%asc\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ncreateframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_if%%1\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_if%%1\nlabel else_if%%1\npushs LF@p%%i\npushs LF@p%%len\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\ngts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_if%%3\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_if%%3\nlabel else_if%%3\nstri2int LF@%%retval LF@p%%s LF@p%%i\nlabel end_if%%3\nlabel end_if%%1\npopframe\nreturn\n\n");
+  printf("label f%%asc\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\nsub LF@p%%i LF@p%%i int@1\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ncreateframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifa%%1\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_ifa%%1\nlabel else_ifa%%1\npushs LF@p%%i\npushs LF@p%%len\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\ngts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_ifa%%3\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_ifa%%3\nlabel else_ifa%%3\nstri2int LF@%%retval LF@p%%s LF@p%%i\nlabel end_ifa%%3\nlabel end_ifa%%1\npopframe\nreturn\n\n");
 
 }
 
 void GPrint_Chr(){
-  printf("label f%%chr\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%i\npops LF@p%%i\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_if%%0\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_if%%0\nlabel else_if%%0\npushs LF@p%%i\npushs int@255\ngts\npushs bool@false\njumpifeqs else_if%%2\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_if%%2\nlabel else_if%%2\nint2char LF@%%retval LF@p%%i\nlabel end_if%%2\nlabel end_if%%0\npopframe\nreturn\n\n");
+  printf("label f%%chr\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%i\npops LF@p%%i\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifb%%0\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifb%%0\nlabel else_ifb%%0\npushs LF@p%%i\npushs int@255\ngts\npushs bool@false\njumpifeqs else_ifb%%2\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifb%%2\nlabel else_ifb%%2\nint2char LF@%%retval LF@p%%i\nlabel end_ifb%%2\nlabel end_ifb%%0\npopframe\nreturn\n\n");
 
 }
 
@@ -96,6 +76,7 @@ void GPrint_ProgramHead() {
   GPrint_Length();
   GPrint_Asc();
   GPrint_Chr();
+  GPrint_SubStr();
 }
 
 // Scope
@@ -457,9 +438,6 @@ void Generator_Expression(TList *listPostFix) {
 void Generator_StringExpression(TList *listPostFix) {
   TListData data;
   int i = 0;
-  static unsigned int counterTmpVar = 0;
-  unsigned int localCounter = counterTmpVar;
-  counterTmpVar++;
 
   while( ListGet(listPostFix, i, &data ) ) {
     switch( ((TToken*)data.pointer)->type ) {
@@ -470,14 +448,12 @@ void Generator_StringExpression(TList *listPostFix) {
         GPrint_PushString( ((TToken*)data.pointer)->string );
         break;
       case TK_PLUS:
-        printf("defvar LF@tmp1%%%d\n",localCounter);
-        printf("defvar LF@tmp2%%%d\n",localCounter);
-        printf("pops LF@tmp1%%%d\n",localCounter);
-        printf("pops LF@tmp2%%%d\n",localCounter);
-        printf("concat LF@tmp1%%%d LF@tmp1%%%d LF@tmp2%%%d\n",localCounter, localCounter, localCounter);
-        printf("pushs LF@tmp1%%%d\n",localCounter);
-        localCounter = counterTmpVar;
-        counterTmpVar++;
+        //printf("defvar LF@tmp1%%%d\n",localCounter);
+        //printf("defvar LF@tmp2%%%d\n",localCounter);
+        printf("pops LF@p_tmp%%2\n");
+        printf("pops LF@p_tmp%%1\n");
+        printf("concat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\n");
+        printf("pushs LF@p_tmp%%1\n");
         break;
       case TK_LESS:
         printf("lts\n");
@@ -674,7 +650,7 @@ void Generator_Assignment(TATSNode **nodeAST) {
   //PrintASTNodeType( (*nodeAST)->type );
 
   if((*nodeAST)->token1 == NULL){
-    if((*nodeAST)->token2->type == TK_STRING){
+    if((*nodeAST)->token2->type == TK_NUM_STRING){
       Generator_StringExpression((*nodeAST)->listPostFix);
     }
     else{
