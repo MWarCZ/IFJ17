@@ -31,16 +31,50 @@
   printf("label f%%length\n");
   printf("pushframe\n");
 
-  printf("defvar LF@p%%strlength\npops LF@p%%strlength\n");
-  printf("defvar LF@p%%chars\npushs int@0\npops LF@p%%chars\n");
-  printf("strlen LF@p%%chars LF@p%%strlength\npushs LF@p%%chars\n");
+  printf("defvar LF@p%%str\npops LF@p%%str\n");
+  printf("defvar LF@p%%strlen\npushs int@0\npops LF@p%%strlen\n");
+  printf("strlen LF@p%%str LF@p%%strlen\n");
+  printf("move LF@%%retval LF@p%%strlen\n");
 
-  printf("pops LF@%%retval\n");
-  printf("popframe\n");
-  printf("return\n");
+  printf("popframe\nreturn\n");
+}
+
+void GPrint_SubStr(){
+  printf("label f%%substr\n");
+  printf("pushframe\n");
+
+  printf("defvar LF@p%%StrEnd\npops LF@p%%StrEnd\n");
+  printf("defvar LF@p%%StrBegin\npops LF@p%%StrBegin\n");
+  printf("defvar LF@p%%Str\npops LF@%%Str\n");
+  printf("defvar LF@p%%substrTmp\npushs bool@false\npops LF@p%%substrTmp\n");
+  printf("defvar LF@p%%retString\npushs string@\npops LF@p%%retString\n");
+
+  printf("pushs LF@p%%StrBegin\npushs int@0\nlts\n");
+  printf("pushs LF@p%%StrBegin\npushs int@0\neqs\n");
+  printf("ors\npops LF@p%%substrTmp");
+  printf("pushs LF@p%%Str\npushs str@\neqs\npushs LF@p%%substrTmp\nors\n");
+
+  printf("pushs bool@false\njumpifeqs else_if%%substr1\n");
+    printf("clears\npushs LF@p%%StrEnd\npushs int@0\nlts\npushs LF@p%%StrEnd\n");
+    printf("pushs LF@p%%Str\ncall f%%length\ngts\nors\n");
+    printf("pushs bool@false\njumpifeqs else_if%%substr2\n");
+      printf("");
+    printf("jump end_if%%substr\nlabel else_if%%substr\n");
+      printf("");
+    printf("label end_if%%substr\n");
+  printf("jump end_if%%substr\nlabel else_if%%substr\n");
+    printf("move LF@%%retval LF@p%%retString\n");
+  printf("label end_if%%substr\n");
+
 }*/
 
-//void GPrint_SubStr();
+/*void GPrint_Asc(){
+
+}
+
+void GPrint_Chr(){
+
+}*/
 
 void GPrint_PrintString(char* str){
   int len = strlen(str);
@@ -62,6 +96,7 @@ void GPrint_ProgramHead() {
 // Scope
 void GPrint_ScopeHead() {
   printf("label SCOPE\ncreateframe\npushframe\n");
+  printf("defvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\n");
 }
 void GPrint_ScopeFoot() {
   printf("popframe\n");
@@ -71,6 +106,7 @@ void GPrint_ScopeFoot() {
 // Function
 void GPrint_FunctionHead(char* name) {
   printf("label f%%%s\npushframe\n",name);
+  printf("defvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\n");
 }
 void GPrint_FunctionParam(char* name) {
   printf("defvar LF@p%%%s\npops LF@p%%%s\n", name, name);
@@ -81,7 +117,7 @@ void GPrint_FunctionFoot() {
 //-----------
 
 void GPrint_LocalVariableCreateStart(char* name) {
-  printf("defvar LF@p%%%s\n", name);
+  printf("defvar TF@p%%%s\n", name);
 }
 
 void GPrint_LocalVariableCreateEnd(char* name) {
@@ -376,9 +412,40 @@ void Generator_Expression(TList *listPostFix) {
       case TK_NOT_EQUAL:
         printf("eqs\nnots\n");
         break;
+      case TK_LESS_EQUAL:
+        printf("pops LF@p_tmp%%2\n");
+        printf("pops LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("lts\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("eqs\n");
+        printf("ors\n");
+        break;
+      case TK_GREATER_EQUAL:
+        printf("pops LF@p_tmp%%2\n");
+        printf("pops LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("gts\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("eqs\n");
+        printf("ors\n");
+        break;
+      case TK_DIV_INT:
+        printf("pops LF@p_tmp%%2\n");
+        printf("int2floats\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("int2floats\n");
+        printf("divs\n");
+        printf("float2ints\n");
+        break;
       default:
         printf("NA err\n");
         break;
+        
     }
     i++;
   }
@@ -421,6 +488,28 @@ void Generator_StringExpression(TList *listPostFix) {
         break;
       case TK_NOT_EQUAL:
         printf("eqs\nnots\n");
+        break;
+      case TK_LESS_EQUAL:
+        printf("pops LF@p_tmp%%2\n");
+        printf("pops LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("lts\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("eqs\n");
+        printf("ors\n");
+        break;
+      case TK_GREATER_EQUAL:
+        printf("pops LF@p_tmp%%2\n");
+        printf("pops LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("gts\n");
+        printf("pushs LF@p_tmp%%1\n");
+        printf("pushs LF@p_tmp%%2\n");
+        printf("eqs\n");
+        printf("ors\n");
         break;
       default:
         printf("NA err\n");
@@ -474,7 +563,7 @@ void Generator_Command(TATSNode **nodeAST) {
     // node3 > ListCommand
 
   }
-  else if( (*nodeAST)->token1->type == TK_ID ) {
+  else if( (*nodeAST)->token1->type == TK_ID || (*nodeAST)->token1->type == TK_LENGTH || (*nodeAST)->token1->type == TK_SUBSTR || (*nodeAST)->token1->type == TK_ASC || (*nodeAST)->token1->type == TK_CHR ) {
     Generator_Assignment( &((*nodeAST)->node1) );
 
     if( (*nodeAST)->token2->type == TK_NUM_INTEGER && (*nodeAST)->node1->token2->type == TK_NUM_DOUBLE ) {
@@ -483,6 +572,7 @@ void Generator_Command(TATSNode **nodeAST) {
     else if( (*nodeAST)->token2->type == TK_NUM_DOUBLE && (*nodeAST)->node1->token2->type == TK_NUM_INTEGER ) {
       printf("int2floats\n");
     }
+    
 
     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
     // token1 > TK_ID
@@ -539,9 +629,13 @@ void Generator_Command(TATSNode **nodeAST) {
     }
   }
   else if( (*nodeAST)->token1->type == TK_LENGTH ){////////////
+
   }
   else if( (*nodeAST)->token1->type == TK_SUBSTR ){/////////////
-
+   /* printf("createframe\n");
+    printf("defvar TF@%%retstr\nmove TF@%%retstr string@\n");
+    //parametry
+    printf("call f%%substr\n");*/
   }
   else if( (*nodeAST)->token1->type == TK_ASC ){////////////
 
@@ -554,15 +648,11 @@ void Generator_ListExpression(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_ListExpression\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
-  static unsigned int ExprCounter = 0;
-  unsigned int locCounter = ExprCounter;
-  ExprCounter++;
 
   if( (*nodeAST)->listPostFix != NULL ) {
     Generator_Expression( (*nodeAST)->listPostFix );
-    printf("defvar LF@p_tmp%%%d\n", locCounter);
-    printf("pops LF@p_tmp%%%d\n",locCounter );
-    printf("write LF@p_tmp%%%d\n", locCounter);
+    printf("pops LF@p_tmp%%1\n" );
+    printf("write LF@p_tmp%%1\n");
     Generator_ListExpression( &((*nodeAST)->node1) );
   }
 }
@@ -589,7 +679,7 @@ void Generator_Assignment(TATSNode **nodeAST) {
       Generator_Expression((*nodeAST)->listPostFix);
     }
   }
-  else if((*nodeAST)->token1->type == TK_ID){
+  else if( (*nodeAST)->token1->type == TK_ID || (*nodeAST)->token1->type == TK_LENGTH || (*nodeAST)->token1->type == TK_SUBSTR || (*nodeAST)->token1->type == TK_ASC || (*nodeAST)->token1->type == TK_CHR ) {
     //GPrint_FunctionCallStart((*nodeAST)->token2->type);
     GPrint_FunctionCallStart( (*nodeAST)->token2->type );
     Generator_ListInParam( &((*nodeAST)->node1) );
