@@ -27,7 +27,7 @@
 
  */
 /*Length funkce*/
-/*void GPrint_Length(){
+void GPrint_Length(){
   printf("label f%%length\n");
   printf("pushframe\n");
 
@@ -39,7 +39,7 @@
   printf("popframe\nreturn\n");
 }
 
-void GPrint_SubStr(){
+/*void GPrint_SubStr(){
   printf("label f%%substr\n");
   printf("pushframe\n");
 
@@ -387,9 +387,6 @@ void Generator_Expression(TList *listPostFix) {
         break;
       case TK_DIV:
         printf("divs\n");
-        break;
-      case TK_DIV_INT:
-        printf("NA\n");
         break;
       case TK_MOD:
         printf("NA\n");
