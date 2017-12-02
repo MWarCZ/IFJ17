@@ -23,7 +23,7 @@
 #include "list.h"
 #include "ast.h"
 #include "parser2.h"
-//#include "generator.h"
+#include "generator.h"
 
 symtable_t *GlobalSymtable = NULL; /* TS */ // Globalni tabulka symbolu alias Tabulka fuknci
 
@@ -51,7 +51,7 @@ int SyntaxStartParse() {
   (*tkn) = GetNextDestroyOldToken( (*tkn),0 );
 
   if( Syntaxx_Program(tkn, &rootAST ) ) {
-    //GeneratorStart(&rootAST); // GENERATOR
+    GeneratorStart(&rootAST); // GENERATOR
   }
   else if( ERR_EXIT_STATUS ) {
     // pokud exit status neni OK tak doslo k jinemu typu chyby jiz drive
@@ -863,7 +863,7 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
         CallError(ERR_SEM);
         return 0;
       }
-      fprintf(stderr, "X>> %d\n",lel->defined );
+      //fprintf(stderr, "X>> %d\n",lel->defined );
       (*nodeAST)->token2 = TokenInit();
       (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
       /* TS e*/
