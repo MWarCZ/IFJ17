@@ -1,0 +1,6 @@
+Scope
+    Dim a as String
+
+    a = Chr(72)
+    Print a;
+End Scope

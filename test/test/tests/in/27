@@ -1,0 +1,6 @@
+Scope
+    Dim a as String
+
+    a = SubStr(!"Hello World!", 7, 5)
+    Print a;
+End Scope

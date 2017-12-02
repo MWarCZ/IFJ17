@@ -1,0 +1,5 @@
+Scope
+
+    Dim a As Integer = 42
+    
+    Print a;

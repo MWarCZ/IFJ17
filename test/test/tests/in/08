@@ -1,0 +1,9 @@
+Scope
+    Dim i As Integer = 0
+
+    Do While i < 10
+        Print i; !"\n";
+        i = i + 1
+    Loop
+
+End Scope

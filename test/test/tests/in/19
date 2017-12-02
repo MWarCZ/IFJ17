@@ -1,0 +1,10 @@
+Function test(a As integer) as Integer
+    Print a;
+    return a
+End function
+
+Declare function test(a as Integer) as Integer
+
+Scope
+    test(42);
+End scope

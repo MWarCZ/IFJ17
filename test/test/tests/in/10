@@ -1,0 +1,28 @@
+Function printInteger(i As Integer) As Integer
+    Print i;
+    Return i
+End Function
+
+Function printString(s As String) As String
+    Print s;
+    Return s
+End Function
+
+Function printDouble(d As Double) As Double
+    Print d;
+    Return d
+End Function
+
+Scope
+    Dim i As Integer
+    Dim d As Double
+    Dim s As String
+    
+    s = printString(!"The answer is not ")
+    d = printDouble(13.37)
+    print !", but ";
+    i = printInteger(42)
+    
+    Print !"\n"; i; !"\n"; d; !"\n"; s;
+    
+End Scope

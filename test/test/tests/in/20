@@ -1,0 +1,4 @@
+Scope
+    Dim a As Integer
+    a = test(42)
+End Scope

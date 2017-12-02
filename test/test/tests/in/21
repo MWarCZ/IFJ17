@@ -1,0 +1,9 @@
+Function test(a as Integer, s as String) as integer
+    print a;
+    print s;
+end function
+
+Scope
+    Dim a As Integer
+    a = test(42)
+End Scope

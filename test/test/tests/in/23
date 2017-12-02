@@ -1,0 +1,5 @@
+Scope
+    Dim a As Integer = 1
+    
+    a = a >= !"Hello"
+End Scope

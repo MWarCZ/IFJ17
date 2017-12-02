@@ -1,0 +1,12 @@
+scope
+    Dim a As Integer = 6
+    DIM vysl AS INTEGER
+
+    Vysl = 1
+    Do WHile A > 0
+        VYSL = vysl * a
+        a = A - 1
+    LooP
+    
+    Print vysl;
+END SCOPE
