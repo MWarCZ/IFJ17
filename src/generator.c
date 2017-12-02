@@ -39,8 +39,8 @@ void GPrint_Length(){
   printf("popframe\nreturn\n\n");
 }
 
-/*
-void GPrint_SubStr(){
+
+/*void GPrint_SubStr(){
   printf("label f%%substr\n");
   printf("pushframe\n");
 
