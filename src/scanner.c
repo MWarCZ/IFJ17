@@ -170,6 +170,8 @@ TToken* GetNextToken() {
     else if( CanBeIgnored(readLastChar) ) { ; }
     else {
       // ERR_LEX
+      PrintLineNumberErr(readLineNumber);
+      fprintf(stderr, "Byl zadan neplaty znak '%c'\n", readLastChar );
       CallError(ERR_LEX);
       break;
     }
@@ -177,6 +179,8 @@ TToken* GetNextToken() {
 
   readToken->line = readLineNumber;
   Convert(readToken);
+
+  //if(ERR_EXIT_STATUS) PrintLineErr(readToken); // ERR
 
   /// START Zaloha pro pripadne opakovani tokenu.
   TokenDestroy(lastToken);
@@ -213,6 +217,8 @@ void State_MultilineComment() {
     readLastChar=getchar();
     if( readLastChar==EOF ) {
       // ERR_LEX
+      PrintLineNumberErr(readLineNumber);
+      fprintf(stderr, "Nebyl ocekavan konec souboru.\n");
       CallError(ERR_LEX);
       repeatLastChar = 1;
       return;
@@ -222,6 +228,8 @@ void State_MultilineComment() {
         readLastChar=getchar();
         if( readLastChar==EOF ) {
           // ERR_LEX
+          PrintLineNumberErr(readLineNumber);
+          fprintf(stderr, "Nebyl ocekavan konec souboru.\n" );
           CallError(ERR_LEX);
           repeatLastChar = 1;
           return;
@@ -274,6 +282,8 @@ void State_Double() {
   if( !isdigit(readLastChar=getchar()) ) {
     repeatLastChar = 1;
     // ERR_LEX
+    PrintLineNumberErr(readLineNumber);
+    fprintf(stderr, "Byla ocekavana cislice za teckou misto '%c'\n", readLastChar );
     CallError(ERR_LEX);
     return;
   }
@@ -311,6 +321,8 @@ void State_CanDoubleE() {
   }
   else {
     // ERR_LEX
+    PrintLineNumberErr(readLineNumber);
+    fprintf(stderr, "Byla ocekavana cislice exponentu misto '%c'\n", readLastChar );
     CallError(ERR_LEX);
     repeatLastChar = 1;
   }
@@ -332,6 +344,8 @@ void State_ExMark() {
   }
   else {
     // ERR_LEX
+    PrintLineNumberErr(readLineNumber);
+    fprintf(stderr, "Za vykricnikem nemuze nasledovat '%c'\n", readLastChar );
     CallError(ERR_LEX);
     repeatLastChar=1;
   }
@@ -354,6 +368,8 @@ void State_String() {
     }
     else if( readLastChar==EOF || readLastChar=='\n' ) {
       // ERR_LEX
+      PrintLineNumberErr(readLineNumber);
+      fprintf(stderr, "Textovy retezec nesmi obsahovat odradkovani.\n" );
       CallError(ERR_LEX);
       repeatLastChar = 1;
       return;
@@ -385,16 +401,22 @@ void State_SpecialChar() {
         }
         else {
           // LEX_ERR
+          PrintLineNumberErr(readLineNumber);
+          fprintf(stderr, "V escape sekvenci bylo zadano neplatne trimistne cislo.\n" );
           CallError(ERR_LEX);
         }
       }
       else {
         // LEX_ERR
+        PrintLineNumberErr(readLineNumber);
+        fprintf(stderr, "V escape sekvenci bylo zadano neplatne trimistne cislo.\n" );
         CallError(ERR_LEX);
       }
     }
     else {
       // LEX_ERR
+      PrintLineNumberErr(readLineNumber);
+      fprintf(stderr, "V escape sekvenci bylo zadano neplatne trimistne cislo.\n" );
       CallError(ERR_LEX);
     }
 

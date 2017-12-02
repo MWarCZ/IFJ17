@@ -11,6 +11,8 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#include "token.h"
+
 typedef enum{
     ERR_OK = 0,             //Everything is fine ;)
     ERR_LEX = 1,            //error in lexical analyzer
@@ -25,6 +27,9 @@ extern TError ERR_EXIT_STATUS;
 
 void DefError(TError err);
 void CallError(TError err);
+
+void PrintLineErr(TToken *token);
+void PrintLineNumberErr(unsigned long int line);
 
 #endif
 

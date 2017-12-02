@@ -14,8 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "error.h"
+#include "token.h"
 
 TError ERR_EXIT_STATUS = ERR_OK;
+
 /*Function sets the right error message*/
 void DefError(TError err){
     switch(err){
@@ -43,11 +45,19 @@ void DefError(TError err){
 }
 /*Error function for handling warning or exit error*/
 void CallError(TError err){
-    ERR_EXIT_STATUS = err;
+    if( !ERR_EXIT_STATUS ) ERR_EXIT_STATUS = err; // Nastavi se jen kod prvni volane chyby.
     DefError(err);
     if(err == ERR_INTERNAL){
         exit(1);
     }
+}
+
+void PrintLineErr(TToken *token) {
+  fprintf(stderr,"%ld: ", token->line );
+}
+
+void PrintLineNumberErr(unsigned long int line) {
+  fprintf(stderr,"%ld: ", line );
 }
 
 #endif

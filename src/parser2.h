@@ -28,7 +28,7 @@ int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, i
 int Syntaxx_Param(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow, int indexOfParam);
 int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow, int checkParamNow, int indexOfParam);
 int Syntaxx_DataType(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **elem);
-int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST);
+int Syntaxx_FunctionEnd(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, int isDeclareNow);
 int Syntaxx_ScopeDef(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 int Syntaxx_ScopeEnd(TToken **tkn, TATSNode **nodeAST);
@@ -53,8 +53,8 @@ int Syntaxx_Expression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 
 int Semantic_ControlExpression( TList **listPostFix, TATSNode **nodeAST, symtable_elem_t **gel );
 
-int TokenTypeToSymDataType(TTokenType type);
-int SymDataTypeToTokenType(st_datatype_t type);
+st_datatype_t TokenTypeToSymDataType(TTokenType type);
+TTokenType SymDataTypeToTokenType(st_datatype_t type);
 
 void SyntaxInitBuildInFunction();
 

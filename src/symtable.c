@@ -48,11 +48,12 @@ symtable_elem_t *AddElemGlobal(symtable_t *globalTable, char *globalToken){
     add->name = strdup(globalToken);    //nazev tokenu
     add->nextElem = globalTable->array[symtabKey];  //posune seznam
     globalTable->array[symtabKey] = add;    //dosadí na zacatek novy element
-    add->declared = false; //MW
-    add->defined = false; //MW
+    add->declared = 0; //MW
+    add->defined = 0; //MW
     //add->local_symtable = NULL; //MW
     SymtableInit( &(add->local_symtable) );//MW
     add->listParam = NULL;//MW
+    add->dataType = SYM_DATATYPE_VOID; //MW
     return add; //vraci nove vytvoreny element
 }
 
