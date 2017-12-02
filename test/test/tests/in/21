@@ -4,5 +4,6 @@ Function test(a as Integer, s as String) as integer
 end function
 
 Scope
-    test(42)
+    Dim a As Integer
+    a = test(42)
 End Scope

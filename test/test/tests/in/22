@@ -1,5 +1,5 @@
 Scope
     Dim a As Integer
     
-    a = a + "Hello"
+    a = a + !"Hello"
 End Scope
