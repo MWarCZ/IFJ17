@@ -33,7 +33,7 @@ void GPrint_Length(){
 
   printf("defvar LF@p%%str\npops LF@p%%str\n");
   printf("defvar LF@p%%strlen\npushs int@0\npops LF@p%%strlen\n");
-  printf("strlen LF@p%%str LF@p%%strlen\n");
+  printf("strlen LF@p%%strlen LF@p%%str\n");
   printf("move LF@%%retval LF@p%%strlen\n");
 
   printf("popframe\nreturn\n");
@@ -117,7 +117,7 @@ void GPrint_FunctionFoot() {
 //-----------
 
 void GPrint_LocalVariableCreateStart(char* name) {
-  printf("defvar TF@p%%%s\n", name);
+  printf("defvar LF@p%%%s\n", name);
 }
 
 void GPrint_LocalVariableCreateEnd(char* name) {
