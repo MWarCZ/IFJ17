@@ -50,7 +50,7 @@ void GPrint_SubStr(){
 }
 
 void GPrint_Asc(){
-  printf("label f%%asc\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ncreateframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifa%%1\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_ifa%%1\nlabel else_ifa%%1\npushs LF@p%%i\npushs LF@p%%len\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\ngts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_ifa%%3\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_ifa%%3\nlabel else_ifa%%3\nstri2int LF@%%retval LF@p%%s LF@p%%i\nlabel end_ifa%%3\nlabel end_ifa%%1\npopframe\nreturn\n\n");
+  printf("label f%%asc\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\nsub LF@p%%i LF@p%%i int@1\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ncreateframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifa%%1\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_ifa%%1\nlabel else_ifa%%1\npushs LF@p%%i\npushs LF@p%%len\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\ngts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_ifa%%3\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_ifa%%3\nlabel else_ifa%%3\nstri2int LF@%%retval LF@p%%s LF@p%%i\nlabel end_ifa%%3\nlabel end_ifa%%1\npopframe\nreturn\n\n");
 
 }
 
