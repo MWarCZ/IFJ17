@@ -27,18 +27,19 @@
 
  */
 /*Length funkce*/
-/*void GPrint_Length(){
+void GPrint_Length(){
   printf("label f%%length\n");
   printf("pushframe\n");
 
   printf("defvar LF@p%%str\npops LF@p%%str\n");
   printf("defvar LF@p%%strlen\npushs int@0\npops LF@p%%strlen\n");
-  printf("strlen LF@p%%str LF@p%%strlen\n");
+  printf("strlen LF@p%%strlen LF@p%%str\n");
   printf("move LF@%%retval LF@p%%strlen\n");
 
-  printf("popframe\nreturn\n");
+  printf("popframe\nreturn\n\n");
 }
 
+/*
 void GPrint_SubStr(){
   printf("label f%%substr\n");
   printf("pushframe\n");
@@ -68,13 +69,15 @@ void GPrint_SubStr(){
 
 }*/
 
-/*void GPrint_Asc(){
+void GPrint_Asc(){
+  printf("label f%%asc\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ncreateframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_if%%1\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_if%%1\nlabel else_if%%1\npushs LF@p%%i\npushs LF@p%%len\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\ngts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_if%%3\npushs int@0\npops LF@%%retval\npopframe\nreturn\njump end_if%%3\nlabel else_if%%3\nstri2int LF@%%retval LF@p%%s LF@p%%i\nlabel end_if%%3\nlabel end_if%%1\npopframe\nreturn\n\n");
 
 }
 
 void GPrint_Chr(){
+  printf("label f%%chr\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%i\npops LF@p%%i\npushs LF@p%%i\npushs int@0\nlts\npushs bool@false\njumpifeqs else_if%%0\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_if%%0\nlabel else_if%%0\npushs LF@p%%i\npushs int@255\ngts\npushs bool@false\njumpifeqs else_if%%2\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_if%%2\nlabel else_if%%2\nint2char LF@%%retval LF@p%%i\nlabel end_if%%2\nlabel end_if%%0\npopframe\nreturn\n\n");
 
-}*/
+}
 
 void GPrint_PrintString(char* str){
   int len = strlen(str);
@@ -89,8 +92,10 @@ void GPrint_PrintString(char* str){
 }
 
 void GPrint_ProgramHead() {
-  printf(".ifjcode17\njump SCOPE\n");
+  printf(".ifjcode17\njump SCOPE\n\n");
   GPrint_Length();
+  GPrint_Asc();
+  GPrint_Chr();
 }
 
 // Scope
@@ -117,7 +122,7 @@ void GPrint_FunctionFoot() {
 //-----------
 
 void GPrint_LocalVariableCreateStart(char* name) {
-  printf("defvar TF@p%%%s\n", name);
+  printf("defvar LF@p%%%s\n", name);
 }
 
 void GPrint_LocalVariableCreateEnd(char* name) {
@@ -238,7 +243,7 @@ void Generator_NextParam(TATSNode **nodeAST) {
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
-  if( (*nodeAST)->token1 != NULL ) {
+  if( (*nodeAST)->node1 != NULL ) {
     Generator_Param( &((*nodeAST)->node1) );
     Generator_NextParam( &((*nodeAST)->node2) );
   }
@@ -387,9 +392,6 @@ void Generator_Expression(TList *listPostFix) {
         break;
       case TK_DIV:
         printf("divs\n");
-        break;
-      case TK_DIV_INT:
-        printf("NA\n");
         break;
       case TK_MOD:
         printf("NA\n");
@@ -692,8 +694,8 @@ void Generator_ListInParam(TATSNode **nodeAST) {
   //PrintASTNodeType( (*nodeAST)->type ); 
 
   if((*nodeAST)->node1 != NULL){
-    Generator_InParam(&((*nodeAST)->node1));
     Generator_NextInParam(&((*nodeAST)->node2));
+    Generator_InParam(&((*nodeAST)->node1));
   }
 }
 void Generator_InParam(TATSNode **nodeAST) {
@@ -718,8 +720,8 @@ void Generator_NextInParam(TATSNode **nodeAST) {
   //PrintASTNodeType( (*nodeAST)->type );
 
   if((*nodeAST)->node1 != NULL){
-    Generator_InParam(&((*nodeAST)->node1));
     Generator_NextInParam(&((*nodeAST)->node2));
+    Generator_InParam(&((*nodeAST)->node1));
   }
 }
 void Generator_Term(TATSNode **nodeAST) {///////////
