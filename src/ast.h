@@ -47,6 +47,7 @@ typedef struct TATSNode {
   TATSNodeType type;
   TToken *token1;
   TToken *token2;
+  TToken *token3;
   TList *listPostFix;
   struct TATSNode *node1;
   struct TATSNode *node2;
@@ -57,6 +58,8 @@ typedef struct TATSNode {
 TATSNode* InitASTNode(TATSNodeType type);
 void DestroyASTNode(TATSNode *node);
 void DestroyASTNodeSafely(TATSNode **node);
+
+void PrintASTNodeType(TATSNodeType type) ;
 
 #endif
 

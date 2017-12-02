@@ -60,9 +60,9 @@ typedef struct symtable_elem_t{
     st_elemtype_t elemType;
     st_datatype_t dataType;
     st_value_t value;
-    bool declared; // deklarovano pomoci 'declare function xyz ...' - jen hlavicka
+    int declared; // deklarovano pomoci 'declare function xyz ...' - jen hlavicka
     //bool initialized; //MW 
-    bool defined; //MW // definovano pomoci 'function xyz ...' - hlavicka a telo funkce
+    int defined; //MW // definovano pomoci 'function xyz ...' - hlavicka a telo funkce
     //TODO - doplňky pro element
     TList *listParam;//MW //List s parametry funkce. NULL=Funkce nebyla deklarovana ani definovana
     symtable_t *local_symtable;
