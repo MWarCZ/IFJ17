@@ -902,9 +902,10 @@ int Syntaxx_ListInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel,
     case TK_BRACKET_ROUND_RIGHT:
 
       if( (*fel)->listParam->count > 0 ) {
-        // ERR_SYN
+        // ERR_COMP
         PrintLineErr( (*tkn) );
         fprintf(stderr, "Bylo zadano mene parametru nez kolik funkce prijima.\n");
+        CallError(ERR_COMP);
         return 0;
       }
 
@@ -931,9 +932,10 @@ int Syntaxx_InParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, sym
       (*nodeAST)->token2 = TokenInit();
       (*nodeAST)->token2->type = ((*nodeAST)->node1)->token2->type;
       if( !ListGet( (*fel)->listParam , indexOfParam, &data ) ) {
-        // ERR_SYN
+        // ERR_COMP
         PrintLineErr( (*tkn) );
         fprintf(stderr, "Bylo zadano vice parametru nez kolik funkce prijima.\n");
+        CallError(ERR_COMP);
         return 0;
       }
       (*nodeAST)->token1 = TokenInit();
@@ -972,9 +974,10 @@ int Syntaxx_NextInParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel,
     case TK_BRACKET_ROUND_RIGHT:
 
       if( (*fel)->listParam->count > indexOfParam ) {
-        // ERR_SYN
+        // ERR_COMP
         PrintLineErr( (*tkn) );
         fprintf(stderr, "Bylo zadano mene parametru nez kolik funkce prijima.\n");
+        CallError(ERR_COMP);
         return 0;
       }
 
