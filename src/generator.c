@@ -72,7 +72,7 @@ void GPrint_PrintString(char* str){
 }
 
 void GPrint_ProgramHead() {
-  printf(".ifjcode17\njump SCOPE\n\n");
+  printf(".IFJcode17\njump SCOPE\n\n");
   GPrint_Length();
   GPrint_Asc();
   GPrint_Chr();
