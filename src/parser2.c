@@ -138,6 +138,13 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel
           CallError(ERR_SEM);
           return 0;
         }
+        if( (*gel)->defined ) {
+          // ERR_SEM
+          PrintLineErr( (*tkn) );
+          fprintf(stderr, "Declarace funkce musi predchazet definici funkce.\n");
+          CallError(ERR_SEM);
+          return 0;
+        }
         (*gel)->declared = 1;
       }
       else {
@@ -871,6 +878,11 @@ int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) {
       (*nodeAST)->token1 = (*tkn); /// AST return
       (*tkn) = GetNextToken();
 
+      if( strcmp( (*gel)->name, "scope")==0 ) {
+        fprintf(stderr, "Funkce scope nemuze obsahovat prikaz return.\n");
+        return 0;
+      }
+
       if( !Syntaxx_Expression(tkn, nodeAST, gel) ) { 
         return 0;
       }
@@ -972,13 +984,14 @@ int Syntaxx_Assignment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel) 
         CallError(ERR_SEM);
         return 0;
       }
-      else if( lel->defined == -1 && lel->declared == 0 ) {
-        // ERR_SEM
-        PrintLineErr( (*tkn) );
-        fprintf(stderr, "Ve funkci '%s' nemuze byt volana funkce '%s' pokud ji nepredchazi declarace.\n", (*tkn)->string, (*tkn)->string );
-        CallError(ERR_SEM);
-        return 0;
-      }
+      // else if( lel->defined == -1 && lel->declared == 0 ) {
+      //   // ERR_SEM
+      //   PrintLineErr( (*tkn) );
+      //   fprintf(stderr, "Ve funkci '%s' nemuze byt volana funkce '%s' pokud ji nepredchazi declarace.\n", (*tkn)->string, (*tkn)->string );
+      //   CallError(ERR_SEM);
+      //   return 0;
+      // }
+      
       //fprintf(stderr, "X>> %d\n",lel->defined );
       (*nodeAST)->token2 = TokenInit();
       (*nodeAST)->token2->type = SymDataTypeToTokenType(lel->dataType);
