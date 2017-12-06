@@ -62,7 +62,7 @@ void GPrint_Chr(){
 void GPrint_PrintString(char* str){
   int len = strlen(str);
   for(int i=0; i<len; i++ ) {
-    if( (str[i]>= 0 && str[i]<=32 )||(str[i]==92) ) {
+    if( (str[i]>= 0 && str[i]<=32 )||(str[i]==35)||(str[i]==92) ) {
       printf("\\%03d", str[i] );
     }
     else {
