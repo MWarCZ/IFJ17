@@ -192,6 +192,15 @@ int Syntaxx_ListParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, i
       return Syntaxx_Param(tkn, &((*nodeAST)->node1), gel, isDeclareNow, checkParamNow, indexOfParam ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2), gel, isDeclareNow, checkParamNow, indexOfParam+1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
+      if(checkParamNow) {
+        if( (*gel)->listParam->count != indexOfParam ) { 
+            // ERR_SEM
+            PrintLineErr( (*tkn) );
+            fprintf(stderr, "List parametru v declaraci a definici nejsou stejne dlouhe.\n");
+            CallError(ERR_SEM);
+            return 0;
+          }
+      }
       return 1;
       break;
     default:
@@ -315,6 +324,15 @@ int Syntaxx_NextParam(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, i
       return Syntaxx_Param(tkn, &((*nodeAST)->node1), gel, isDeclareNow, checkParamNow, indexOfParam ) && Syntaxx_NextParam(tkn, &((*nodeAST)->node2), gel, isDeclareNow, checkParamNow, indexOfParam+1 );
       break;
     case TK_BRACKET_ROUND_RIGHT:
+      if(checkParamNow) {
+        if( (*gel)->listParam->count != indexOfParam ) { 
+            // ERR_SEM
+            PrintLineErr( (*tkn) );
+            fprintf(stderr, "List parametru v declaraci a definici nejsou stejne dlouhe.\n");
+            CallError(ERR_SEM);
+            return 0;
+          }
+      }
       return 1;
       break;
     default:
