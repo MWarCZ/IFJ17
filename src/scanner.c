@@ -450,7 +450,7 @@ void State_SpecialChar() {
         break;
       default:
         // ERR_LEX
-        //CallError(ERR_LEX);
+        CallError(ERR_LEX);
         StringAdd(readString,readLastChar);
         break;
     }
