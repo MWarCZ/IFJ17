@@ -34,7 +34,13 @@ void Generator_ScopeHead(TATSNode **nodeAST);
 void Generator_ScopeEnd(TATSNode **nodeAST);
 void Generator_ScopeAfter(TATSNode **nodeAST);
 void Generator_FunctionBody(TATSNode **nodeAST);
-void Generator_ListVarDef(TATSNode **nodeAST);
+
+
+void Generator_ListVarOrCommand(TATSNode **nodeAST);
+void Generator_VarOrCommand(TATSNode **nodeAST);
+
+//void Generator_ListVarDef(TATSNode **nodeAST);
+
 void Generator_VarDefAssigment(TATSNode **nodeAST);
 void Generator_ListCommand(TATSNode **nodeAST);
 void Generator_Command(TATSNode **nodeAST);

@@ -274,28 +274,75 @@ void Generator_FunctionBody(TATSNode **nodeAST) {
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
-  Generator_ListVarDef( &((*nodeAST)->node1) );
-  Generator_ListCommand( &((*nodeAST)->node2) );
+  //Generator_ListVarDef( &((*nodeAST)->node1) );
+  //Generator_ListCommand( &((*nodeAST)->node2) );
+
+  Generator_ListVarOrCommand( &((*nodeAST)->node1) );
 
 }
-void Generator_ListVarDef(TATSNode **nodeAST) {
-  //fprintf(stderr, ">> Generator_ListVarDef\n");
+
+void Generator_ListVarOrCommand(TATSNode **nodeAST) {
+  //fprintf(stderr, ">> Generator_ListVarOrCommand\n");
+  if( !nodeAST || !(*nodeAST) ) return;
+  //PrintASTNodeType( (*nodeAST)->type );
+
+  if( (*nodeAST)->node1 != NULL ) {
+    Generator_VarOrCommand( &((*nodeAST)->node1) );
+    Generator_ListVarOrCommand( &((*nodeAST)->node2) );
+  }
+
+  // if(node1 <> NULL)
+  //   node1 > VarOrCommand
+  //   node2 > ListVarOrCommand
+  // if(node1 == NULL)
+
+
+}
+void Generator_VarOrCommand(TATSNode **nodeAST) {
+  //fprintf(stderr, ">> Generator_VarOrCommand\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
   printf("\n");
   
-  if( (*nodeAST)->token1 != NULL ) {
+  if( (*nodeAST)->token1 == NULL ) {
+    Generator_Command( &((*nodeAST)->node1) );
+  }
+  else if( (*nodeAST)->token1->type == TK_ID ) {
     GPrint_LocalVariableCreateStart( (*nodeAST)->token1->string );
 
     Generator_VarDefAssigment( &((*nodeAST)->node2) );
 
     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
-
-    Generator_ListVarDef( &((*nodeAST)->node3) );
   }
 
+  // if(token1 == NULL)
+  //   node1 > Command
+  // if(token1 == TK_ID)
+  //   token1 > TK_ID
+  //   node1 > DataType
+  //   node2 > VarDefAssigment
 }
+
+
+// void Generator_ListVarDef(TATSNode **nodeAST) {
+//   //fprintf(stderr, ">> Generator_ListVarDef\n");
+//   if( !nodeAST || !(*nodeAST) ) return;
+//   //PrintASTNodeType( (*nodeAST)->type );
+  
+//   printf("\n");
+  
+//   if( (*nodeAST)->token1 != NULL ) {
+//     GPrint_LocalVariableCreateStart( (*nodeAST)->token1->string );
+
+//     Generator_VarDefAssigment( &((*nodeAST)->node2) );
+
+//     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
+
+//     Generator_ListVarDef( &((*nodeAST)->node3) );
+//   }
+
+// }
 
 void Generator_VarDefAssigment(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_VarDefAssigment\n");
