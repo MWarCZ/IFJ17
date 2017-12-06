@@ -34,8 +34,15 @@ int Syntaxx_ScopeHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 int Syntaxx_ScopeEnd(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_ScopeAfter(TToken **tkn, TATSNode **nodeAST);
 int Syntaxx_FunctionBody(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
-int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
-int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, TTokenType tokenType);
+
+//int Syntaxx_ListVarDef(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+//int Syntaxx_VarDefAssigment(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel, TTokenType tokenType);
+
+
+int Syntaxx_ListVarOrCommand(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+int Syntaxx_VarOrCommand(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
+
+
 int Syntaxx_ListCommand(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 int Syntaxx_Command(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);
 int Syntaxx_ListExpression(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel);

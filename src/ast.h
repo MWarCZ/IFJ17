@@ -31,6 +31,10 @@ typedef enum {
   AST_FunctionBody,
   AST_ListVarDef,
   AST_VarDefAssigment,
+
+  AST_ListVarOrCommand,
+  AST_VarOrCommand,
+
   AST_ListCommand,
   AST_Command,
   AST_ListExpression,

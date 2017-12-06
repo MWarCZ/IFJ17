@@ -43,9 +43,9 @@ void GPrint_Length(){
 void GPrint_SubStr(){
   printf("label f%%substr\npushframe\ndefvar LF@p_tmp%%1\ndefvar LF@p_tmp%%2\ndefvar LF@p%%s\npops LF@p%%s\ndefvar LF@p%%i\npops LF@p%%i\ndefvar LF@p%%n\npops LF@p%%n\ndefvar LF@p%%len\npushs int@0\npops LF@p%%len\ndefvar LF@p%%len2end\npushs int@0\npops LF@p%%len2end\ndefvar LF@p%%counter\npushs int@0\npops LF@p%%counter\ndefvar LF@p%%outstr\npushs string@\npops LF@p%%outstr\ndefvar LF@p%%tmpstr\npushs string@\npops LF@p%%tmpstr\n"); 
 
-  printf("createframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%len\npushs int@0\neqs\npushs bool@false\njumpifeqs else_ifd%%1\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifd%%1\nlabel else_ifd%%1\npushs LF@p%%i\npushs int@0\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_ifd%%3\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifd%%3\nlabel else_ifd%%3\nlabel end_ifd%%3\nlabel end_ifd%%1\npushs LF@p%%len\npushs LF@p%%i\nsubs\npops LF@p%%len2end\npushs LF@p%%n\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifd%%6\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\nlabel start_dod%%8\npushs LF@p%%i\npushs LF@p%%len2end\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%8\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%8\nlabel end_dod%%8\njump end_ifd%%6\nlabel else_ifd%%6\npushs LF@p%%n\npushs LF@p%%len2end\ngts\npushs bool@false\njumpifeqs else_ifd%%12\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\n"); 
+  printf("createframe\ndefvar TF@%%retval\nmove TF@%%retval int@0\npushs LF@p%%s\ncall f%%length\npushs TF@%%retval\npops LF@p%%len\npushs LF@p%%len\npushs int@0\neqs\npushs bool@false\njumpifeqs else_ifd%%1\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifd%%1\nlabel else_ifd%%1\npushs LF@p%%i\npushs int@0\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs else_ifd%%3\npushs string@\npops LF@%%retval\npopframe\nreturn\njump end_ifd%%3\nlabel else_ifd%%3\nlabel end_ifd%%3\nlabel end_ifd%%1\npushs LF@p%%len\n\npops LF@p%%len2end\npushs LF@p%%n\npushs int@0\nlts\npushs bool@false\njumpifeqs else_ifd%%6\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\nlabel start_dod%%8\npushs LF@p%%i\npushs LF@p%%len2end\nlts\npushs bool@false\njumpifeqs end_dod%%8\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%8\nlabel end_dod%%8\njump end_ifd%%6\nlabel else_ifd%%6\npushs LF@p%%n\npushs LF@p%%i\nadds\npushs LF@p%%len2end\ngts\npushs bool@false\njumpifeqs else_ifd%%12\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\n"); 
 
-  printf("label start_dod%%14\npushs LF@p%%i\npushs LF@p%%len2end\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%14\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%14\nlabel end_dod%%14\njump end_ifd%%12\nlabel else_ifd%%12\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\npushs LF@p%%n\npushs LF@p%%i\nadds\npops LF@p%%n\nlabel start_dod%%19\npushs LF@p%%i\npushs LF@p%%n\npushs int@1\nsubs\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%19\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%19\nlabel end_dod%%19\nlabel end_ifd%%12\nlabel end_ifd%%6\npushs LF@p%%outstr\npops LF@%%retval\npopframe\nreturn\npopframe\nreturn\n\n");
+  printf("label start_dod%%14\npushs LF@p%%i\npushs LF@p%%len2end\nlts\npushs bool@false\njumpifeqs end_dod%%14\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%14\nlabel end_dod%%14\njump end_ifd%%12\nlabel else_ifd%%12\npushs LF@p%%i\npushs int@1\nsubs\npops LF@p%%i\npushs LF@p%%n\npushs LF@p%%i\nadds\npops LF@p%%n\nlabel start_dod%%19\npushs LF@p%%i\npushs LF@p%%n\npushs int@1\nsubs\npops LF@p_tmp%%2\npops LF@p_tmp%%1\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\nlts\npushs LF@p_tmp%%1\npushs LF@p_tmp%%2\neqs\nors\npushs bool@false\njumpifeqs end_dod%%19\ngetchar LF@p%%tmpstr LF@p%%s LF@p%%i\npushs LF@p%%outstr\npushs LF@p%%tmpstr\npops LF@p_tmp%%2\npops LF@p_tmp%%1\nconcat LF@p_tmp%%1 LF@p_tmp%%1 LF@p_tmp%%2\npushs LF@p_tmp%%1\npops LF@p%%outstr\npushs LF@p%%i\npushs int@1\nadds\npops LF@p%%i\njump start_dod%%19\nlabel end_dod%%19\nlabel end_ifd%%12\nlabel end_ifd%%6\npushs LF@p%%outstr\npops LF@%%retval\npopframe\nreturn\npopframe\nreturn\n\n");
 
 }
 
@@ -62,7 +62,7 @@ void GPrint_Chr(){
 void GPrint_PrintString(char* str){
   int len = strlen(str);
   for(int i=0; i<len; i++ ) {
-    if( (str[i]>= 0 && str[i]<=32 )||(str[i]==92) ) {
+    if( (str[i]>= 0 && str[i]<=32 )||(str[i]==35)||(str[i]==92) ) {
       printf("\\%03d", str[i] );
     }
     else {
@@ -274,28 +274,75 @@ void Generator_FunctionBody(TATSNode **nodeAST) {
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
-  Generator_ListVarDef( &((*nodeAST)->node1) );
-  Generator_ListCommand( &((*nodeAST)->node2) );
+  //Generator_ListVarDef( &((*nodeAST)->node1) );
+  //Generator_ListCommand( &((*nodeAST)->node2) );
+
+  Generator_ListVarOrCommand( &((*nodeAST)->node1) );
 
 }
-void Generator_ListVarDef(TATSNode **nodeAST) {
-  //fprintf(stderr, ">> Generator_ListVarDef\n");
+
+void Generator_ListVarOrCommand(TATSNode **nodeAST) {
+  //fprintf(stderr, ">> Generator_ListVarOrCommand\n");
+  if( !nodeAST || !(*nodeAST) ) return;
+  //PrintASTNodeType( (*nodeAST)->type );
+
+  if( (*nodeAST)->node1 != NULL ) {
+    Generator_VarOrCommand( &((*nodeAST)->node1) );
+    Generator_ListVarOrCommand( &((*nodeAST)->node2) );
+  }
+
+  // if(node1 <> NULL)
+  //   node1 > VarOrCommand
+  //   node2 > ListVarOrCommand
+  // if(node1 == NULL)
+
+
+}
+void Generator_VarOrCommand(TATSNode **nodeAST) {
+  //fprintf(stderr, ">> Generator_VarOrCommand\n");
   if( !nodeAST || !(*nodeAST) ) return;
   //PrintASTNodeType( (*nodeAST)->type );
   
   printf("\n");
   
-  if( (*nodeAST)->token1 != NULL ) {
+  if( (*nodeAST)->token1 == NULL ) {
+    Generator_Command( &((*nodeAST)->node1) );
+  }
+  else if( (*nodeAST)->token1->type == TK_ID ) {
     GPrint_LocalVariableCreateStart( (*nodeAST)->token1->string );
 
     Generator_VarDefAssigment( &((*nodeAST)->node2) );
 
     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
-
-    Generator_ListVarDef( &((*nodeAST)->node3) );
   }
 
+  // if(token1 == NULL)
+  //   node1 > Command
+  // if(token1 == TK_ID)
+  //   token1 > TK_ID
+  //   node1 > DataType
+  //   node2 > VarDefAssigment
 }
+
+
+// void Generator_ListVarDef(TATSNode **nodeAST) {
+//   //fprintf(stderr, ">> Generator_ListVarDef\n");
+//   if( !nodeAST || !(*nodeAST) ) return;
+//   //PrintASTNodeType( (*nodeAST)->type );
+  
+//   printf("\n");
+  
+//   if( (*nodeAST)->token1 != NULL ) {
+//     GPrint_LocalVariableCreateStart( (*nodeAST)->token1->string );
+
+//     Generator_VarDefAssigment( &((*nodeAST)->node2) );
+
+//     GPrint_LocalVariableCreateEnd( (*nodeAST)->token1->string );
+
+//     Generator_ListVarDef( &((*nodeAST)->node3) );
+//   }
+
+// }
 
 void Generator_VarDefAssigment(TATSNode **nodeAST) {
   //fprintf(stderr, ">> Generator_VarDefAssigment\n");
