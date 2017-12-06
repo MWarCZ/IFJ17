@@ -81,6 +81,7 @@ archive:
 	rm -Rf $(ARCHIVE_DIR)
 	cp -R $(SOURCE_DIR) $(ARCHIVE_DIR)
 	cp rozdeleni $(ARCHIVE_DIR)rozdeleni | true
+	cp doc/dokumentace.pdf $(ARCHIVE_DIR)dokumentace.pdf | true
 	cd $(ARCHIVE_DIR) && zip xvalka05.zip *
 
 # Vymaze vsechny slozky a soubory, ktere neni potreba uchovavat v repozitari
