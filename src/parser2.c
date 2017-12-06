@@ -26,7 +26,7 @@
 #include "generator.h"
 
 symtable_t *GlobalSymtable = NULL; /* TS */ // Globalni tabulka symbolu alias Tabulka fuknci
-
+TList *listOfFunctionDeclare = NULL;
 
 // Znici stary token a vrati novy
 TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
@@ -40,6 +40,7 @@ TToken* GetNextDestroyOldToken(TToken *tkn, int canGetEOL) {
 
 int SyntaxStartParse() {
   SymtableInit(&GlobalSymtable); /* TS */
+  listOfFunctionDeclare = ListInit();
   TToken *tmpToken = NULL;
   TToken** tkn = &tmpToken;
 
@@ -62,7 +63,7 @@ int SyntaxStartParse() {
     CallError(ERR_SYN);
   }
 
-
+  ListDestroy(listOfFunctionDeclare);
   TokenDestroy( (*tkn) );
   DestroyASTNodeSafely(&rootAST); // AST
   SymtableFree(GlobalSymtable);
@@ -78,7 +79,20 @@ int Syntaxx_Program(TToken **tkn, TATSNode **nodeAST) {
     case TK_FUNCTION:
     case TK_SCOPE:
     case TK_EOF:
-      return Syntaxx_ListDecDef(tkn, &((*nodeAST)->node1) ) && Syntaxx_ScopeDef(tkn, &((*nodeAST)->node2)  );
+      if( Syntaxx_ListDecDef(tkn, &((*nodeAST)->node1) ) && Syntaxx_ScopeDef(tkn, &((*nodeAST)->node2)  ) ) {
+        TListData data;
+        while( ListPop(listOfFunctionDeclare, &data) ) {
+          symtable_elem_t *el = ( (symtable_elem_t*)data.pointer );
+          if( !el->defined ) {
+            // ERR_SEM
+            fprintf(stderr, "Funkce '%s' nebyla definovana.\n", el->name );
+            CallError(ERR_SEM);
+            return 0;
+          }
+        }
+        return 1;
+      }
+      return 0;
       break;
     default:
       fprintf(stderr, "Program\n");
@@ -146,6 +160,9 @@ int Syntaxx_FunctionHead(TToken **tkn, TATSNode **nodeAST, symtable_elem_t **gel
           return 0;
         }
         (*gel)->declared = 1;
+        TListData data;
+        data.pointer = *gel;
+        ListPushBack(listOfFunctionDeclare, data );
       }
       else {
         if( (*gel)->defined ) {
