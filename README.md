@@ -12,7 +12,7 @@ Cílem projektu je vytvořit překladač v jazyce C pro rádoby jazyk FreeBASIC,
 ------------
 
 ## Licence 
-- **_Byli bychom rádi, kdyby studenti VUT FIT pracující na stejném projektu do IFJ ve stejném roce 2017/2018 hledali inspiraci mimo náš repositář! Děkujeme._**
+- **_Byli bychom rádi, kdyby studenti VUT FIT pracující na stejném/podobném projektu do předměntu IFJ, aby dbali na dodržení pravidel fakulty a předmětu k přebírání (respektivě nepřebírání) externího kódu. Děkujeme._**
 - Repozitář je veřejný a kódy jsou distribuovány pod licencí [MIT][licence].
 
 ------------
@@ -44,9 +44,11 @@ Cílem projektu je vytvořit překladač v jazyce C pro rádoby jazyk FreeBASIC,
 ### Co používáme
 - [CHEAT](https://github.com/Tuplanolla/cheat)
   - Testovací framework pro psaní unit testů v jazyce C.
-- [Travis CI](https://travis-ci.org)
+  - > Nestíhalo se => unit testy nejsou.
+- ~~[Travis CI](https://travis-ci.org)~~
   - Automatizované spouštění testů pro kódy odeslané na GitHub.
   - Zdarma pro veřejné repozitáře.
+  - > Nepoužito neboť repo musel být privátní.
 ### Jak spustit unit testy
 - Testy je možné spustit za pomocí nástroje `make`
   ```
